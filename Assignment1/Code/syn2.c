@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-#include <sys/ipc.h>
 #include <sys/sem.h>
 
 void display(char *str) {
@@ -24,11 +23,6 @@ int main() {
 
     sem = semget(IPC_PRIVATE, 2, 0600); /* create semaphore */
     semop(sem, &ab_up, 1);
-
-    if (sem == -1) {
-        perror ("semget");
-        exit(1);
-    }
 
     if (fork()) {
         for (i = 0; i < 10; i++) {
