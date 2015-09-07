@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -12,20 +13,22 @@ void display(char *str) {
         usleep(100);
     }
 }
+
 int main() {
-    int i;
     struct sembuf ab_up =   {0, 1, 0};
     struct sembuf ab_down = {0, -1, 0};
-    struct sembuf cd_up =   {0, 1, 0};
-    struct sembuf cd_down = {0, -1, 0};
-
+    struct sembuf cd_up =   {1, 1, 0};
+    struct sembuf cd_down = {1, -1, 0};
+    int i;
     int sem;
 
     sem = semget(IPC_PRIVATE, 2, 0600); /* create semaphore */
-    if (sem == -1) {
-        perror ("semget:");
-    }
     semop(sem, &ab_up, 1);
+
+    if (sem == -1) {
+        perror ("semget");
+        exit(1);
+    }
 
     if (fork()) {
         for (i = 0; i < 10; i++) {
