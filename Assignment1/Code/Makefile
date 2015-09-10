@@ -1,8 +1,8 @@
 CC = gcc
-CFLAGS = -Wall 
-TARGET_SOURCES = syn1.c syn2.c
-TARGET_OBJECTS = syn1.o syn2.o
-EXECUTABLE = syn1 syn2
+CFLAGS = 
+TARGET_SOURCES = mysh1.c  syn1.c syn2.c
+TARGET_OBJECTS = mysh1.o syn1.o syn2.o
+EXECUTABLE = mysh1 syn1 syn2
 
 all: $(EXECUTABLE)
 

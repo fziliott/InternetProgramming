@@ -4,62 +4,73 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
-#define BUFFER_SIZE 1<<16
-#define ARR_SIZE 1<<16
 
-void parse_args(char *buffer, char** args, 
-                size_t args_size, size_t *nargs)
+const int SIZE = 42;
+const int NARGS = 10;
+
+void printString(char *s, int size)
 {
-    char *buf_args[args_size]; /* You need C99 */
-    char **cp;
-    char *wbuf;
-    size_t i, j;
-    
-    wbuf=buffer;
-    buf_args[0]=buffer; 
-    args[0] =buffer;
-    
-    for(cp=buf_args; (*cp=strsep(&wbuf, " \n\t")) != NULL ;){
-        if ((*cp != '\0') && (++cp >= &buf_args[args_size]))
-            break;
+    while(size > 0)
+    {
+        printf("Print string: %s\n", s);
+        ++s;
+        --size;
     }
-    
-    for (j=i=0; buf_args[i]!=NULL; i++){
-        if(strlen(buf_args[i])>0)
-            args[j++]=buf_args[i];
-    }
-    
-    *nargs=j;
-    args[j]=NULL;
 }
 
+int main(int argc, char *argv[], char *envp[])
+{
+    char cdCmd[] = "cd";
+    char input[SIZE];
+    char *args[NARGS];
+    char *ptr;
+    char dir[256];
 
-int main(int argc, char *argv[], char *envp[]){
-    char buffer[BUFFER_SIZE];
-    char *args[ARR_SIZE];
+    while(1)
+    {
+        if (getcwd(dir, sizeof(dir)) == NULL)
+        {
+            perror("getcwd() error");
+        }
+        printf("%s$ ", dir);
+        fgets(input, SIZE, stdin);
+        char *token;
 
-    int *ret_status;
-    size_t nargs;
-    pid_t pid;
-    
-    while(1){
-        printf("$ ");
-        fgets(buffer, BUFFER_SIZE, stdin);
-        parse_args(buffer, args, ARR_SIZE, &nargs); 
+        token = strtok(input, " \n\t");
+        args[0] = token;
 
-        if (nargs==0) continue;
-        if (!strcmp(args[0], "exit" )) exit(0);       
-        pid = fork();
-        if (pid){
-            printf("Waiting for child (%d)\n", pid);
-            pid = wait(ret_status);
-            printf("Child (%d) finished\n", pid);
-        } else {
-            if( execvp(args[0], args)) {
-                puts(strerror(errno));
-                exit(127);
+        int i = 1;
+        while (token != NULL && i <= NARGS)
+        {
+            token = strtok(NULL, " \n\t");
+            args[i] = token;
+            ++i;
+        }
+
+        if (!strcmp(args[0], "exit" )) exit(0);
+        if(!strcmp(args[0], cdCmd))
+        {
+            strcpy(dir, args[1]); //Update current directory
+            if(chdir(args[1]))
+            {
+                printf("%s is not a valid path.\n", args[1]);
             }
         }
-    }    
+        else
+        {
+            pid_t pid = fork();
+            if (pid)
+            {
+                wait(NULL);
+            }
+            else
+            {
+                execvp(args[0], args);
+                perror("Error calling exec()!\n");
+                exit(1);
+            }
+        }
+    }
     return 0;
 }
+
