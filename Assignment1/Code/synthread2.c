@@ -11,18 +11,19 @@
 pthread_mutex_t mutex;
 int ab_written = FALSE;
 int cd_written = TRUE;
-pthread_cond_t cond_var;
+pthread_cond_t cond_p;
+pthread_cond_t cond_c;
 
 void *prod(void *s) {
     int i;
     for (i = 0; i < 10; i++) {
         pthread_mutex_lock(&mutex);
         while (cd_written == FALSE)
-            pthread_cond_wait(&cond_var, &mutex);
+            pthread_cond_wait(&cond_p, &mutex);
         cd_written = FALSE;
         ab_written = TRUE;
 
-        pthread_cond_signal(&cond_var);
+        pthread_cond_signal(&cond_c);
         pthread_mutex_unlock(&mutex);
     }
 }
@@ -32,11 +33,11 @@ void *cons(void *s) {
     for (i = 0; i < 10; i++) {
         pthread_mutex_lock(&mutex);
         while (ab_written == FALSE)
-            pthread_cond_wait(&cond_var, &mutex);
+            pthread_cond_wait(&cond_c, &mutex);
         ab_written = FALSE;
         cd_written = TRUE;
         printf("%s\n", s);
-        pthread_cond_signal(&cond_var);
+        pthread_cond_signal(&cond_p);
         pthread_mutex_unlock(&mutex);
     }
 
@@ -53,7 +54,8 @@ int main() {
         printf("\n mutex init failed\n");
         return 1;
     }
-    pthread_cond_init(&cond_var, NULL);
+    pthread_cond_init(&cond_p, NULL);
+    pthread_cond_init(&cond_c, NULL);
     /*while(i < 2) {
         printf("B");
         err = pthread_create(&(tid[i]), NULL, (apfunz[i]), s[i]);

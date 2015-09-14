@@ -11,7 +11,7 @@ void *stamp(void *s) {
     int i;
     for (i = 0; i < 10; i++) {
         pthread_mutex_lock(&mutex);
-        printf("%s\n", s);
+        printf("%s\n", (char*)s);
         pthread_mutex_unlock(&mutex);
     }
 }
@@ -30,7 +30,7 @@ int main() {
     }
 
     while(i < 2) {
-        err = pthread_create(&(tid[i]), NULL, &stamp, s[i]);
+        err = pthread_create(&(tid[i]), NULL, stamp, s[i]);
         if (err != 0)
             printf("\ncan't create thread :[%s]", strerror(err));
         i++;
