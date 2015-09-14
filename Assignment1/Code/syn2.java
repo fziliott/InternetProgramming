@@ -1,12 +1,12 @@
 import java.util.Random;
 
-class PrintThread extends Thread {
+class PrintThread2 extends Thread {
     private String message;
     private Boolean canWrite;
-    public PrintThread otherPrint;
+    public PrintThread2 otherPrint;
     private static String lock = new String("mylock");
 
-    PrintThread(String msg, Boolean cWrite) {
+    PrintThread2(String msg, Boolean cWrite) {
         message = msg;
         canWrite = cWrite;
 
@@ -27,8 +27,8 @@ class PrintThread extends Thread {
                     }
                 }
                 syn2.display(message);
-                canWrite=new Boolean (false);
-                otherPrint.canWrite=new Boolean(true);
+                canWrite = new Boolean (false);
+                otherPrint.canWrite = new Boolean(true);
                 lock.notifyAll();
             }
         }
@@ -44,8 +44,8 @@ public class syn2 {
         Boolean  writeCd = new Boolean(false);
         Object ll = new Object();
 
-        PrintThread t1 = new PrintThread("ab", writeAb);
-        PrintThread t2 = new PrintThread("cd\n", writeCd);
+        PrintThread2 t1 = new PrintThread2("ab", writeAb);
+        PrintThread2 t2 = new PrintThread2("cd\n", writeCd);
         t1.otherPrint = t2;
         t2.otherPrint = t1;
         t1.start();

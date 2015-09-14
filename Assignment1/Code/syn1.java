@@ -27,7 +27,7 @@ public class syn1 {
         t1.start();
         t2.start();
     }
-    
+
     public static void display(String str) {
         for(int i = 0; i < str.length(); i++) {
             System.out.print(str.charAt(i));
