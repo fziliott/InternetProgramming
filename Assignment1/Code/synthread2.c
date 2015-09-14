@@ -6,11 +6,10 @@
 #include <pthread.h>
 
 #define FALSE 0
-#define TRUE 0
+#define TRUE 1
 
 pthread_mutex_t mutex;
-int ab_written = FALSE;
-int cd_written = TRUE;
+int ab_turn = TRUE;
 pthread_cond_t cond_p;
 pthread_cond_t cond_c;
 
@@ -18,11 +17,10 @@ void *prod(void *s) {
     int i;
     for (i = 0; i < 10; i++) {
         pthread_mutex_lock(&mutex);
-        while (cd_written == FALSE)
+        while (ab_turn == FALSE)
             pthread_cond_wait(&cond_p, &mutex);
-        cd_written = FALSE;
-        ab_written = TRUE;
-
+        ab_turn = FALSE;
+        printf("%s", s);
         pthread_cond_signal(&cond_c);
         pthread_mutex_unlock(&mutex);
     }
@@ -32,10 +30,9 @@ void *cons(void *s) {
     int i;
     for (i = 0; i < 10; i++) {
         pthread_mutex_lock(&mutex);
-        while (ab_written == FALSE)
+        while (ab_turn == TRUE)
             pthread_cond_wait(&cond_c, &mutex);
-        ab_written = FALSE;
-        cd_written = TRUE;
+        ab_turn = TRUE;
         printf("%s\n", s);
         pthread_cond_signal(&cond_p);
         pthread_mutex_unlock(&mutex);
