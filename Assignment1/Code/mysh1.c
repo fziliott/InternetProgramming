@@ -6,7 +6,6 @@
 #include <sys/types.h>
 
 const int SIZE = 42;
-const int NARGS = 10;
 
 void printString(char *s, int size)
 {
@@ -20,10 +19,9 @@ void printString(char *s, int size)
 
 int main(int argc, char *argv[], char *envp[])
 {
-    char cdCmd[] = "cd";
     char input[SIZE];
-    char *args[NARGS];
-    char *ptr;
+    char *args[2];
+    args[1]=NULL;
     char dir[256];
 
     while(1)
@@ -39,25 +37,11 @@ int main(int argc, char *argv[], char *envp[])
         token = strtok(input, " \n\t");
         args[0] = token;
 
-        int i = 1;
-        while (token != NULL && i <= NARGS)
-        {
-            token = strtok(NULL, " \n\t");
-            args[i] = token;
-            ++i;
-        }
 
         if (!strcmp(args[0], "exit" )) exit(0);
-        if(!strcmp(args[0], cdCmd))
-        {
-            strcpy(dir, args[1]); //Update current directory
-            if(chdir(args[1]))
-            {
-                printf("%s is not a valid path.\n", args[1]);
-            }
-        }
-        else
-        {
+
+
+        
             pid_t pid = fork();
             if (pid)
             {
@@ -69,7 +53,7 @@ int main(int argc, char *argv[], char *envp[])
                 perror("Error calling exec()!\n");
                 exit(1);
             }
-        }
+        
     }
     return 0;
 }
