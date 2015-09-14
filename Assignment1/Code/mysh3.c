@@ -20,7 +20,7 @@ void printString(char *s, int size) {
 int main(int argc, char *argv[], char *envp[]) {
     char cdCmd[] = "cd";
     char input[SIZE];
-    char *args[NARGS];
+    char *args[NCOM];
     char *args1[NARGS];
     char *args2[NARGS];
     char dir[256];
@@ -40,10 +40,11 @@ int main(int argc, char *argv[], char *envp[]) {
         int i = 1;
         int j;
         int n = 1;
-        while (token != NULL && n <= NCOM) {
-            token = strtok(NULL, " \n\t");
+        while (token != NULL && n < NCOM) {
+            token = strtok(NULL, "|");                        
             args[n] = token;
-            ++n;
+            if(token!=NULL)
+                ++n;
         }
 
         //1st command
@@ -56,7 +57,7 @@ int main(int argc, char *argv[], char *envp[]) {
             ++i;
         }
 
-        if(n > 2) {
+        if(n > 1) {
             //2nd command
             token = strtok(args[1], " \n\t");
             args2[0] = token;
@@ -83,6 +84,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 /* Close the input side of the pipe, to prevent it staying open. */
                 close(p[1]);
             }
+            waitpid(pid);
 
             pid = fork();
             if (pid == 0) {
@@ -112,4 +114,3 @@ int main(int argc, char *argv[], char *envp[]) {
     }
     return 0;
 }
-
