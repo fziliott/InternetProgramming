@@ -5,8 +5,8 @@
 #include <errno.h>
 #include <sys/types.h>
 
-const int SIZE = 42;
 const int NARGS = 10;
+char cdCmd[] = "cd";
 
 void printString(char *s, int size)
 {
@@ -20,11 +20,15 @@ void printString(char *s, int size)
 
 int main(int argc, char *argv[], char *envp[])
 {
-    char cdCmd[] = "cd";
-    char input[SIZE];
-    char *args[NARGS];
-    char *ptr;
+
+    char *input[1];
+    *input = NULL;
+
+    size_t size = 0;
     char dir[256];
+    char *args[NARGS];
+    char *token;
+
 
     while(1)
     {
@@ -32,11 +36,15 @@ int main(int argc, char *argv[], char *envp[])
         {
             perror("getcwd() error");
         }
-        printf("%s$ ", dir);
-        fgets(input, SIZE, stdin);
-        char *token;
+        printf("mysh2: %s$ ", dir);
 
-        token = strtok(input, " \n\t");
+        while(getline(input, &size, stdin) == -1)
+        {
+            printf("Couldn't read the input\n");
+            exit(1);
+        }
+
+        token = strtok(*input, " \n\t");
         args[0] = token;
 
         int i = 1;

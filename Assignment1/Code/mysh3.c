@@ -30,7 +30,7 @@ int main(int argc, char *argv[], char *envp[]) {
         if (getcwd(dir, sizeof(dir)) == NULL) {
             perror("getcwd() error");
         }
-        printf("%s$ ", dir);
+        printf("mysh3: %s$ ", dir);
         fgets(input, SIZE, stdin);
         char *token;
 
