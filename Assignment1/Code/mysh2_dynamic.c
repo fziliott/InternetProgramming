@@ -15,6 +15,12 @@ void printString(char *s, int size) {
     }
 }
 
+void deallocation(char **ar, int size) {
+    int i;
+    for(i = 0; i < size; i++)
+        free(ar[i]);
+}
+
 int main(int argc, char *argv[], char *envp[]) {
     //char input[SIZE];
     char **args;
@@ -45,8 +51,9 @@ int main(int argc, char *argv[], char *envp[]) {
             if(token != NULL) {
                 args[i] = (char *)malloc(strlen(token) + 1);
                 strcpy(args[i], token);
+                ++i;
             }
-            ++i;
+            
         }
         int j;
         if (!strcmp(args[0], "exit" )) exit(0);
@@ -61,6 +68,8 @@ int main(int argc, char *argv[], char *envp[]) {
             perror("Error calling exec()!\n");
             exit(1);
         }
+
+        deallocation(args,i);
 
     }
     return 0;

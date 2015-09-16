@@ -17,6 +17,12 @@ void printString(char *s, int size) {
     }
 }
 
+void deallocation(char **ar, int size) {
+    int i;
+    for(i = 0; i < size; i++)
+        free(ar[i]);
+}
+
 int main(int argc, char *argv[], char *envp[]) {
     char cdCmd[] = "cd";
     char **args;
@@ -51,7 +57,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 strcpy(args[n], token);
                 ++n;
             }
-            
+
         }
 
         //first command
@@ -67,8 +73,9 @@ int main(int argc, char *argv[], char *envp[]) {
             if(token != NULL) {
                 args1[i] = (char *)malloc(strlen(token) + 1);
                 strcpy(args1[i], token);
+                ++i;
             }
-            ++i;
+
         }
 
         if(n > 1) {
@@ -78,15 +85,16 @@ int main(int argc, char *argv[], char *envp[]) {
             args2[0] = (char *)malloc(strlen(token) + 1);
             strcpy(args2[0], token);
 
-            int i = 1;
+            int j = 1;
             while (token != NULL) {
                 token = strtok(NULL, " \n\t");
-                args2 = (char **) realloc (args2, (i + 1) * sizeof(char *));
+                args2 = (char **) realloc (args2, (j + 1) * sizeof(char *));
                 if(token != NULL) {
-                    args2[i] = (char *)malloc(strlen(token) + 1);
-                    strcpy(args2[i], token);
+                    args2[j] = (char *)malloc(strlen(token) + 1);
+                    strcpy(args2[j], token);
+                    ++j;
                 }
-                ++i;
+
             }
 
             if (pipe(p) < 0) {
@@ -104,7 +112,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 /* Close the input side of the pipe, to prevent it staying open. */
                 close(p[1]);
             }
-            waitpid(pid);
+            wait(NULL);
 
             pid = fork();
             if (pid == 0) {
@@ -113,7 +121,11 @@ int main(int argc, char *argv[], char *envp[]) {
                 perror("Error calling exec()!\n");
                 exit(1);
             }
-            waitpid(pid);
+            wait(NULL);
+            deallocation(args1, i);
+            deallocation(args2, j);
+            deallocation(args, n);
+
         } else {
             if(!strcmp(args1[0], cdCmd)) {
                 strcpy(dir, args1[1]); //Update current directory
@@ -122,14 +134,14 @@ int main(int argc, char *argv[], char *envp[]) {
                 }
             } else {
                 pid_t pid = fork();
-                if (pid) {
-                    wait(NULL);
-                } else {
+                if (pid == 0) {
                     execvp(args1[0], args1);
                     perror("Error calling exec()!\n");
                     exit(1);
                 }
-                waitpid(pid);
+                wait(NULL);
+                deallocation(args1, i);
+                deallocation(args, n);
             }
         }
     }
