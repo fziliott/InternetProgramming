@@ -5,79 +5,63 @@
 #include <errno.h>
 #include <sys/types.h>
 
-const int NARGS = 10;
-char cdCmd[] = "cd";
-
-void printString(char *s, int size)
-{
-    while(size > 0)
-    {
-        printf("Print string: %s\n", s);
-        ++s;
-        --size;
-    }
+void deallocation(char **ar, int size) {
+    int i;
+    for(i = 0; i < size; i++)
+        free(ar[i]);
 }
 
-int main(int argc, char *argv[], char *envp[])
-{
-
-    char *input[1];
-    *input = NULL;
-
-    size_t size = 0;
+int main(int argc, char *argv[], char *envp[]) {
+    //char input[SIZE];
+    char **args;
     char dir[256];
-    char *args[NARGS];
-    char *token;
+    size_t len = 0;
+    char *input;
 
-
-    while(1)
-    {
-        if (getcwd(dir, sizeof(dir)) == NULL)
-        {
+    while(1) {
+        if (getcwd(dir, sizeof(dir)) == NULL) {
             perror("getcwd() error");
         }
-        printf("mysh2: %s$ ", dir);
+        printf("%s$ ", dir);
+        //fgets(input, SIZE, stdin);
+        char *token;
 
-        while(getline(input, &size, stdin) == -1)
-        {
-            printf("Couldn't read the input\n");
+        if(getline(&input, &len, stdin) == -1)
+            printf("errore");
+
+        token = strtok(input, " \n\t");
+        args = (char **)malloc(sizeof(char *));
+        args[0] = (char *)malloc(strlen(token) + 1);
+        strcpy(args[0], token);
+
+        int i = 1;
+        while (token != NULL) {
+            token = strtok(NULL, " \n\t");
+            args = (char **) realloc (args, (i + 1) * sizeof(char *));
+            if(token != NULL) {
+                args[i] = (char *)malloc(strlen(token) + 1);
+                strcpy(args[i], token);
+                ++i;
+            }
+            
+        }
+        int j;
+        
+        if (!strcmp(args[0], "exit" )) exit(0);
+
+
+
+        pid_t pid = fork();
+        if (pid) {
+            wait(NULL);
+        } else {
+            execvp(args[0], args);
+            perror("Error calling exec()!\n");
             exit(1);
         }
 
-        token = strtok(*input, " \n\t");
-        args[0] = token;
+        deallocation(args,i);
 
-        int i = 1;
-        while (token != NULL && i <= NARGS)
-        {
-            token = strtok(NULL, " \n\t");
-            args[i] = token;
-            ++i;
-        }
-
-        if (!strcmp(args[0], "exit" )) exit(0);
-        if(!strcmp(args[0], cdCmd))
-        {
-            strcpy(dir, args[1]); //Update current directory
-            if(chdir(args[1]))
-            {
-                printf("%s is not a valid path.\n", args[1]);
-            }
-        }
-        else
-        {
-            pid_t pid = fork();
-            if (pid)
-            {
-                wait(NULL);
-            }
-            else
-            {
-                execvp(args[0], args);
-                perror("Error calling exec()!\n");
-                exit(1);
-            }
-        }
     }
     return 0;
 }

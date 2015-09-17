@@ -4,10 +4,11 @@
 #include <sys/types.h>
 #include <sys/sem.h>
 #include <pthread.h>
+#include <string.h>
 
 pthread_mutex_t mutex;
 
-void *stamp(void *s) {
+void *print(void *s) {
     int i;
     for (i = 0; i < 10; i++) {
         pthread_mutex_lock(&mutex);
@@ -15,8 +16,6 @@ void *stamp(void *s) {
         pthread_mutex_unlock(&mutex);
     }
 }
-
-
 
 int main() {
     char *s[] = {"Hello World", "Bonjour Monde"};
@@ -30,9 +29,9 @@ int main() {
     }
 
     while(i < 2) {
-        err = pthread_create(&(tid[i]), NULL, stamp, s[i]);
+        err = pthread_create(&(tid[i]), NULL, print, s[i]);
         if (err != 0)
-            printf("\ncan't create thread :[%s]", strerror(err));
+            printf("Can't create thread :[%s]", strerror(err));
         i++;
     }
 

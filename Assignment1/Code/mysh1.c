@@ -5,30 +5,16 @@
 #include <errno.h>
 #include <sys/types.h>
 
-const int SIZE = 42;
-
-void printString(char *s, int size)
-{
-    while(size > 0)
-    {
-        printf("Print string: %s\n", s);
-        ++s;
-        --size;
-    }
-}
+#define DIR_LENGTH 255  //Standard value for ext4 file system
 
 int main(int argc, char *argv[], char *envp[])
 {
-    char *input[1];
-    *input = NULL;
-
+    char *input=NULL;
     size_t size = 0;
     char *args[2];
     args[1] = NULL;
-    char dir[256];
+    char dir[DIR_LENGTH];
     char *token;
-
-
 
     while(1)
     {
@@ -37,13 +23,13 @@ int main(int argc, char *argv[], char *envp[])
             perror("getcwd() error");
         }
         printf("mysh1: %s$ ", dir);
-        while(getline(input, &size, stdin) == -1)
+        while(getline(&input, &size, stdin) == -1)
         {
             perror("Couldn't read the input\n");
             exit(1);
         }
 
-        token = strtok(*input, " \n\t");
+        token = strtok(input, " \n\t");
         args[0] = token;
 
         if (!strcmp(args[0], "exit" )) exit(0);
