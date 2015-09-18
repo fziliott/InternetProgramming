@@ -5,62 +5,86 @@
 #include <errno.h>
 #include <sys/types.h>
 
-void deallocation(char **ar, int size) {
-    int i;
-    for(i = 0; i < size; i++)
-        free(ar[i]);
+#define DIR_LENGTH 255  //Standard value for ext4 file system
+void printString(char *s, int size)
+{
+    while(size > 0)
+    {
+        printf("Print string: %s\n", s);
+        ++s;
+        --size;
+    }
 }
 
-int main(int argc, char *argv[], char *envp[]) {
-    //char input[SIZE];
-    char **args;
-    char dir[256];
-    size_t len = 0;
+void deallocation(char **array, int size)
+{
+    int i;
+    for(i = 0; i < size; i++)
+        free(array[i]);
+}
+
+int main(int argc, char *argv[], char *envp[])
+{
+    char dir[DIR_LENGTH];
     char *input;
+    char **args;
+    int args_size;
+    size_t size = 0;
+    char *token;
+    pid_t pid;
 
-    while(1) {
-        if (getcwd(dir, sizeof(dir)) == NULL) {
-            perror("getcwd() error");
+    while(1)
+    {
+        if (getcwd(dir, sizeof(dir)) == NULL)
+        {
+            printf("getcwd() error");
+            exit(1);
         }
-        printf("%s$ ", dir);
-        //fgets(input, SIZE, stdin);
-        char *token;
+        printf("mysh1: %s$ ", dir);
 
-        if(getline(&input, &len, stdin) == -1)
-            printf("errore");
+        while(getline(&input, &size, stdin) == -1)
+        {
+            printf("Couldn't read the input\n");
+            exit(1);
+        }
 
-        token = strtok(input, " \n\t");
+        if((token = strtok(input, " \t\n"))  == NULL)
+            continue;
+
         args = (char **)malloc(sizeof(char *));
         args[0] = (char *)malloc(strlen(token) + 1);
         strcpy(args[0], token);
-
-        int i = 1;
-        while (token != NULL) {
+printString(args[0], strlen(args[0]));
+        args_size = 1;
+        while (token != NULL)
+        {
             token = strtok(NULL, " \n\t");
-            args = (char **) realloc (args, (i + 1) * sizeof(char *));
-            if(token != NULL) {
-                args[i] = (char *)malloc(strlen(token) + 1);
-                strcpy(args[i], token);
-                ++i;
+            args = (char **) realloc (args, (args_size + 1) * sizeof(char *));
+            if(token != NULL)
+            {
+                args[args_size] = (char *)malloc(strlen(token) + 1);
+                strcpy(args[args_size], token);
+                ++args_size;
             }
-            
         }
-        int j;
-        
+printString(args[0], strlen(args[0]));
         if (!strcmp(args[0], "exit" )) exit(0);
 
-
-
-        pid_t pid = fork();
-        if (pid) {
+        pid = fork();
+        if (pid)
+        {
             wait(NULL);
-        } else {
+        }
+        else
+        {
+            
+
             execvp(args[0], args);
             perror("Error calling exec()!\n");
             exit(1);
         }
 
-        deallocation(args,i);
+        deallocation(args, args_size);
 
     }
     return 0;

@@ -9,28 +9,28 @@
 
 int main(int argc, char *argv[], char *envp[])
 {
-    char *input=NULL;
+    char dir[DIR_LENGTH];
+    char *input = NULL;
     size_t size = 0;
     char *args[2];
-    args[1] = NULL;
-    char dir[DIR_LENGTH];
-    char *token;
 
     while(1)
     {
         if (getcwd(dir, sizeof(dir)) == NULL)
         {
-            perror("getcwd() error");
+            printf("getcwd() error");
+            exit(1);
         }
         printf("mysh1: %s$ ", dir);
         while(getline(&input, &size, stdin) == -1)
         {
-            perror("Couldn't read the input\n");
+            printf("Couldn't read the input\n");
             exit(1);
         }
 
-        token = strtok(input, " \n\t");
-        args[0] = token;
+        if((args[0] = strtok(input, " \t\n"))  == NULL)
+            continue;
+        args[1] = NULL;
 
         if (!strcmp(args[0], "exit" )) exit(0);
 
@@ -41,11 +41,10 @@ int main(int argc, char *argv[], char *envp[])
         }
         else
         {
-            execvp(args[0], args);
-            perror("Error calling exec()!\n");
+            if(execvp(args[0], args) == -1)
+                printf("Command not found!\n");
             exit(1);
         }
-
     }
     return 0;
 }
