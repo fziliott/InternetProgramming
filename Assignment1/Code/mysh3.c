@@ -4,115 +4,124 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <signal.h>
 
-void deallocation(char **ar, int size) {
+#define DIR_LENGTH 255  //Standard value for ext4 file system
+
+void deallocation(char **array, int size) {
     int i;
     for(i = 0; i < size; i++)
-        free(ar[i]);
+        free(array[i]);
 }
+
+char **parseArguments(char *input, char *delim, int *size) {
+    char *token;
+    if((token = strtok(input, delim))  == NULL) {
+        *size = -1;
+        return NULL;
+    }
+    char **args = (char **)malloc(sizeof(char *));
+    args[0] = (char *)malloc(strlen(token) + 1);
+    strcpy(args[0], token);
+    int args_size = 1;
+    while (token != NULL) {
+        token = strtok(NULL, delim);
+        args = (char **) realloc (args, (args_size + 1) * sizeof(char *));
+        if(token != NULL) {
+            args[args_size] = (char *)malloc(strlen(token) + 1);
+            strcpy(args[args_size], token);
+            ++args_size;
+        }
+
+    }
+    *size = args_size;
+    return args;
+}
+
+
 
 int main(int argc, char *argv[], char *envp[]) {
     char cdCmd[] = "cd";
     char **args;
+    int args_size;
     char **args1;
+    int args1_size;
     char **args2;
+    int args2_size;
     char dir[256];
-    int p[2];
-
-    size_t len = 0;
+    int fd[2];
+    size_t size = 0;
     char *input;
     char *token;
+    pid_t pid;
 
     while(1) {
         if (getcwd(dir, sizeof(dir)) == NULL) {
-            perror("getcwd() error");
+            printf("getcwd() error");
+            exit(1);
         }
-        printf("%s$ ", dir);
+        printf("mysh1: %s$ ", dir);
 
-        if(getline(&input, &len, stdin) == -1)
-            printf("errore");
-
-        token = strtok(input, "|");
-        args = (char **)malloc(sizeof(char *));
-        args[0] = (char *)malloc(strlen(token) + 1);
-        strcpy(args[0], token);
-        int n = 1;
-        while (token != NULL) {
-            token = strtok(NULL, "|");
-            args = (char **) realloc (args, (n + 1) * sizeof(char *));
-            if(token != NULL) {
-                args[n] = (char *)malloc(strlen(token) + 1);
-                strcpy(args[n], token);
-                ++n;
-            }
-
+        while(getline(&input, &size, stdin) == -1) {
+            printf("Couldn't read the input\n");
+            exit(1);
         }
+
+        args = parseArguments(input, "|\n", &args_size);
+        if(args_size == -1)
+            continue;
+
+        if(args_size == 1)
+            if((token = strtok(input, " \t\n"))  == NULL)
+                continue;
 
         //first command
-        token = strtok(args[0], " \n\t");
-        args1 = (char **)malloc(sizeof(char *));
-        args1[0] = (char *)malloc(strlen(token) + 1);
-        strcpy(args1[0], token);
-
-        int i = 1;
-        while (token != NULL) {
-            token = strtok(NULL, " \n\t");
-            args1 = (char **) realloc (args1, (i + 1) * sizeof(char *));
-            if(token != NULL) {
-                args1[i] = (char *)malloc(strlen(token) + 1);
-                strcpy(args1[i], token);
-                ++i;
-            }
-
+        args1 = parseArguments(args[0], " \n\t", &args1_size);
+        if(args1_size == -1) {
+            printf("Error: no command before pipe!\n");
+            exit(1);
         }
 
-        if(n > 1) {
+        if(args_size > 1) {
+
             //2nd command
-            token = strtok(args[1], " \n\t");
-            args2 = (char **)malloc(sizeof(char *));
-            args2[0] = (char *)malloc(strlen(token) + 1);
-            strcpy(args2[0], token);
-
-            int j = 1;
-            while (token != NULL) {
-                token = strtok(NULL, " \n\t");
-                args2 = (char **) realloc (args2, (j + 1) * sizeof(char *));
-                if(token != NULL) {
-                    args2[j] = (char *)malloc(strlen(token) + 1);
-                    strcpy(args2[j], token);
-                    ++j;
-                }
-
+            args2 = parseArguments(args[1], " \n\t", &args2_size);
+            if(args2_size == -1) {
+                printf("Error: no command after pipe!\n");
+                exit(1);
             }
 
-            if (pipe(p) < 0) {
+            if (pipe(fd) < 0) {
                 perror("Error pipe");
                 exit(1);
             }
 
-            pid_t pid = fork();
+            pid = fork();
             if (pid == 0) {
-                dup2(p[1], 1);
-                execvp(args1[0], args1);
-                perror("Error calling exec()!\n");
-                exit(1);
+                dup2(fd[1], 1);
+                if(execvp(args1[0], args1) == -1) {
+                    //exit(1);
+                    kill(getpid(),SIGTERM);
+                }
             } else {
-                /* Close the input side of the pipe, to prevent it staying open. */
-                close(p[1]);
+                close(fd[1]);
             }
             wait(NULL);
 
             pid = fork();
             if (pid == 0) {
-                dup2(p[0], 0);
-                execvp(args2[0], args2);
-                perror("Error calling exec()!\n");
-                exit(1);
+                dup2(fd[0], 0);
+                if(execvp(args2[0], args2) == -1) {
+                    printf("Command not found!\n");
+                    exit(1);
+                }
+            } else {
+                close(fd[0]);
             }
             wait(NULL);
-            deallocation(args1, i);
-            deallocation(args2, j);
-            deallocation(args, n);
+            deallocation(args1, args1_size);
+            deallocation(args2, args2_size);
+            deallocation(args, args_size);
 
         } else {
             if(!strcmp(args1[0], cdCmd)) {
@@ -128,8 +137,8 @@ int main(int argc, char *argv[], char *envp[]) {
                     exit(1);
                 }
                 wait(NULL);
-                deallocation(args1, i);
-                deallocation(args, n);
+                deallocation(args1, args1_size);
+                deallocation(args, args_size);
             }
         }
     }

@@ -6,25 +6,14 @@
 #include <sys/types.h>
 
 #define DIR_LENGTH 255  //Standard value for ext4 file system
-void printString(char *s, int size)
-{
-    while(size > 0)
-    {
-        printf("Print string: %s\n", s);
-        ++s;
-        --size;
-    }
-}
 
-void deallocation(char **array, int size)
-{
+void deallocation(char **array, int size) {
     int i;
     for(i = 0; i < size; i++)
         free(array[i]);
 }
 
-int main(int argc, char *argv[], char *envp[])
-{
+int main(int argc, char *argv[], char *envp[]) {
     char dir[DIR_LENGTH];
     char *input;
     char **args;
@@ -33,17 +22,14 @@ int main(int argc, char *argv[], char *envp[])
     char *token;
     pid_t pid;
 
-    while(1)
-    {
-        if (getcwd(dir, sizeof(dir)) == NULL)
-        {
+    while(1) {
+        if (getcwd(dir, sizeof(dir)) == NULL) {
             printf("getcwd() error");
             exit(1);
         }
         printf("mysh1: %s$ ", dir);
 
-        while(getline(&input, &size, stdin) == -1)
-        {
+        while(getline(&input, &size, stdin) == -1) {
             printf("Couldn't read the input\n");
             exit(1);
         }
@@ -54,33 +40,26 @@ int main(int argc, char *argv[], char *envp[])
         args = (char **)malloc(sizeof(char *));
         args[0] = (char *)malloc(strlen(token) + 1);
         strcpy(args[0], token);
-printString(args[0], strlen(args[0]));
+
         args_size = 1;
-        while (token != NULL)
-        {
+        while (token != NULL) {
             token = strtok(NULL, " \n\t");
             args = (char **) realloc (args, (args_size + 1) * sizeof(char *));
-            if(token != NULL)
-            {
+            if(token != NULL) {
                 args[args_size] = (char *)malloc(strlen(token) + 1);
                 strcpy(args[args_size], token);
                 ++args_size;
             }
         }
-printString(args[0], strlen(args[0]));
+
         if (!strcmp(args[0], "exit" )) exit(0);
 
         pid = fork();
-        if (pid)
-        {
+        if (pid) {
             wait(NULL);
-        }
-        else
-        {
-            
-
-            execvp(args[0], args);
-            perror("Error calling exec()!\n");
+        } else {
+            if(execvp(args[0], args) == -1)
+                printf("Command not found!\n");
             exit(1);
         }
 
