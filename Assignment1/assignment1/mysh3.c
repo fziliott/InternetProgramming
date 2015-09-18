@@ -16,14 +16,17 @@ void deallocation(char **array, int size) {
 
 char **parseArguments(char *input, char *delim, int *size) {
     char *token;
+    int args_size;
+    char **args;
+
     if((token = strtok(input, delim))  == NULL) {
         *size = -1;
         return NULL;
     }
-    char **args = (char **)malloc(sizeof(char *));
+    args = (char **)malloc(sizeof(char *));
     args[0] = (char *)malloc(strlen(token) + 1);
     strcpy(args[0], token);
-    int args_size = 1;
+    args_size = 1;
     while (token != NULL) {
         token = strtok(NULL, delim);
         args = (char **) realloc (args, (args_size + 1) * sizeof(char *));
@@ -101,7 +104,7 @@ int main(int argc, char *argv[], char *envp[]) {
                 dup2(fd[1], 1);
                 if(execvp(args1[0], args1) == -1) {
                     //exit(1);
-                    kill(getpid(),SIGTERM);
+                    kill(getpid(), SIGTERM);
                 }
             } else {
                 close(fd[1]);
