@@ -37,11 +37,17 @@
 \section{Answers to the Questions}
 \textbf{Q-A}: How many processes must your shell create when receiving a piped command? How many pipes? Until when must the shell wait to accept another command? \newline
 
+When receiving a piped command, the shell program must create number of pipe symbols + 1 processes. Each command so is managed by one process. In addition the shell must create one pipe for each pair of commands, so one pipe for each pipe symbol. This is due to the fact that the output of one command has to be redirected in the input of the following command, so one pipe for each pair of commands.\newline
+
 
 \textbf{Q-B}:Can you implement a shell program which only utilizes threads (instead of processes)? If your answer is yes, then write a thread-based version of \texttt{mys}, call it \texttt{$mysh1_th$}, and include it in your submission. If your answer is no, explain why. \newline
 
+No, it is not possible. To execute shell commands we need to call the "exec" function, so we can run programs on "/bin" directory. The "exec" command, change the code of the current process with another one specified. So, calling an "exec" inside a thread cause the change of the code of the entire program, for these reason each command of a shell must be executed by another process. Calling "exec" without creating a new process means that the shell program is substituted with the code of the specified command and this is not what we need, because when the command execution is finished we cannot continue to accept other command (the shell code was substituted). \newline
 
-\textbf{Q-C}: Can you use the \texttt{cd} command with shell \texttt{my}? Why?
+
+\textbf{Q-C}: Can you use the \texttt{cd} command with shell \texttt{my}? Why?\newline
+
+We can use it, but it has no effects inside piped commands. The "cd" command change the directory of the current process, so if we use it as unique command we can see its effect, otherwise on a piped command, one process change directory, but this has no effect neither on the following command (process) nor on the parent process.\newline
 
 
 \section{Programs Descriptions}
@@ -73,6 +79,25 @@ After the call to the function \texttt{parseArguments} has returned, in the arra
 So the array \texttt{args} contains the command and the arguments for it, as required by the system call \texttt{execvp}, that is called by the child process to execute the command.
 
 \subsection{\texttt{mysh3}}
+To extend \texttt{mysh2} to accept piped commands, we first used an array of pointers to the commands and than for each command we used an array of pointers to its arguments. To create the first array we separate strings using the pipe symbol as delimiter (\texttt{strtok}), then to create an array of arguments for each command we used spaces and tabs as delimiter.  \newline
+
+This version of the shell accepts only two commands separated by a pipe or just one standard command. To know in which case we are is sufficient to check the size of the array of commands. There could be the possibility that a user insert a piped command (insert the pipe symbol) without one of the two needed commands (eg. ''|ls'' or ''ls|''). A check in for this case is performed and eventually a message ''no command before or after pipe'' is shown.\newline
+
+\texttt{mysh3} makes use of these two functions:
+\begin{itemize}
+\item{\texttt{char **parseArguments(char *input, char *delim, int *size)}}: takes the string in \texttt{input} and a character array of delimiters and returns an array of pointers to tokens that are obtained from the initial input by separating the tokens with the \texttt{delim}'s characters. The number of tokens is saved in the variable \texttt{size} and the function return the array of pointers to the tokens.
+\item{\texttt{void deallocation(char **array, int size)}}: this function takes an array of pointers to memory locations that were previously allocated with \texttt{malloc} and deallocates them with by invoking \texttt{free} for each pointer.
+\end{itemize}
+
+After the call to the function \texttt{parseArguments} has returned, in the array \texttt{args} we have:
+\begin{itemize}
+\item \texttt{args[0]}: contains the command to execute (the first token found);
+\item \texttt{args[1]...args[size-1]}: have pointers to the arguments of the command;
+\item \texttt{args[size]}: this is set to be NULL, since the call to \texttt{malloc} and \texttt{realloc} does not initialize the value of the new memory locations.
+\end{itemize}
+
+So the array \texttt{args} contains the command and the arguments for it, as required by the system call \texttt{execvp}, that is called by the child process to execute the command.
+
 \subsection{\texttt{syn1}}
 \subsection{\texttt{syn2}}
 \subsection{\texttt{synthread1}}
