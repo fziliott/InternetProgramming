@@ -8,26 +8,33 @@
 
 pthread_mutex_t mutex;
 
+void display(char *str) {
+    char *tmp;
+    for (tmp = str; *tmp; tmp++) {
+        write(1, tmp, 1);
+        usleep(100);
+    }
+}
+
 void *print(void *s) {
     int i;
     for (i = 0; i < 10; i++) {
         pthread_mutex_lock(&mutex);
-        printf("%s\n", (char*)s);
+        display((char *) s);
         pthread_mutex_unlock(&mutex);
     }
 }
 
 int main() {
-    char *s[] = {"Hello World", "Bonjour Monde"};
+    char *s[] = {"Hello World\n", "Bonjour Monde\n"};
     pthread_t tid[2];
     int i, err;
-
 
     if (pthread_mutex_init(&mutex, NULL) != 0) {
         printf("\n mutex init failed\n");
         return 1;
     }
-    
+
     i=0;
     while(i < 2) {
         err = pthread_create(&(tid[i]), NULL, print, s[i]);
