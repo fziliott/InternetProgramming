@@ -15,7 +15,6 @@ class PrintThread extends Thread {
     }
 }
 
-
 public class syn1 {
     public static void main(String[] args) {
 
