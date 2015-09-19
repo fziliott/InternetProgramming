@@ -13,23 +13,25 @@ void display(char *str) {
 }
 
 int main() {
-    int i;
-    int sem = semget(IPC_PRIVATE, 1, 0600);
-    struct sembuf up =   {0, 1, 0};
-    struct sembuf down = {0, -1, 0};
-    semop(sem, &up, 1);
+    int i;                                      //index
+    int sem = semget(IPC_PRIVATE, 1, 0600);     //semaphore
+    struct sembuf up =   {0, 1, 0};             //struct for the UP() operation on semaphore 
+    struct sembuf down = {0, -1, 0};            //struct for the DOWN() operation on semaphore
+
+    semop(sem, &up, 1);     //at the begin the semaphore must be set to 1 (open)
+
     if (fork()) {
         for (i = 0; i < 10; i++) {
-            semop(sem, &down, 1);
+            semop(sem, &down, 1);       //ask to access the critical section
             display("Hello world\n");
-            semop(sem, &up, 1);
+            semop(sem, &up, 1);         //exit the critical section
         }
         wait(NULL);
     } else {
         for (i = 0; i < 10; i++) {
-            semop(sem, &down, 1);
+            semop(sem, &down, 1);       //ask to access the critical section
             display("Bonjour monde\n");
-            semop(sem, &up, 1);
+            semop(sem, &up, 1);         //exit the critical section
         }
     }
     return 0;
