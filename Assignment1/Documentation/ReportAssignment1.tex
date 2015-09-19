@@ -50,8 +50,8 @@ This is the simple implementation of a shell that receives one command at a time
 
 The call to \texttt{strtok} searches for the start of the command (it skips characters like spaces and tabs) and returns a pointer to that. If no command is found (the newline is inserted before any symbol that may be the start of a command) then the shell will ask for another input line. \newline
 
-If a command is found, first it's compared to the \texttt{exit} directive (to exit the whole program), then a new process is started with the \texttt{fork()} system call to execute the program with the name of the command. The call to \texttt{execvp()} 
-
+If a command is found, first it's compared to the \texttt{exit} directive (to exit the whole program), then a new process is started with the \texttt{fork()} system call to execute the program with the name of the command. The call to \texttt{execvp()} takes the name of the command to execute and searches it in the directories listed in the \textbf{PATH} environment variable.
+When the child process has finished executing (or there was an error when calling \textt{execvp}), it terminates. In the meantime, the parent process waits for the termination of any of its children with the invocation of \texttt{wait(NULL)}. In this case there is only one child to wait. After that, the parent return at the top of the cycle and waits for another command.
 \subsection{\texttt{mysh2}}
 \subsection{\texttt{mysh3}}
 \subsection{\texttt{syn1}}
