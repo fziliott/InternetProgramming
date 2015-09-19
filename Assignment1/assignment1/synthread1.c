@@ -37,7 +37,7 @@ int main() {
     }
 
     /*create 2 pthreads with relative strings to print*/
-    i=0;
+    i = 0;
     while(i < 2) {
         err = pthread_create(&(tid[i]), NULL, print, s[i]);
         if (err != 0)
