@@ -7,7 +7,7 @@ class PrintThread extends Thread {
     }
 
     public void run() {
-        for (int i = 0; i < 10 ; i++) {
+        for (int i = 0; i < 10000 ; i++) {
             synchronized(lock) {        //Only one PrintThread at a time can call syn1.display()
                 syn1.display(message);
             }
@@ -28,6 +28,10 @@ public class syn1 {
     public static void display(String str) {
         for(int i = 0; i < str.length(); i++) {
             System.out.print(str.charAt(i));
+            try{
+            Thread.sleep(10);
+            }
+            catch(InterruptedException ie){}
         }
     }
 }

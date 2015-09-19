@@ -15,7 +15,7 @@ pthread_cond_t cond_p;
 pthread_cond_t cond_c;
 
 /*code for first pthread*/
-void *printFirst(void *s) {
+void *printAb(void *s) {
     int i;
     for (i = 0; i < 10; i++) {
         pthread_mutex_lock(&mutex); //ask to access the critical section
