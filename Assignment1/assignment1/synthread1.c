@@ -27,7 +27,8 @@ int main() {
         printf("\n mutex init failed\n");
         return 1;
     }
-
+    
+    i=0;
     while(i < 2) {
         err = pthread_create(&(tid[i]), NULL, print, s[i]);
         if (err != 0)
