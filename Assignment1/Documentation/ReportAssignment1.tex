@@ -74,10 +74,24 @@ So the array \texttt{args} contains the command and the arguments for it, as req
 
 \subsection{\texttt{mysh3}}
 \subsection{\texttt{syn1}}
+This program creates two processes that competes to access the same output stream. To avoid that the messages they want to print overlaps, we use one semaphore. Every time one of the processes wants to use the \texttt{display} function, the try to perform a down operation on the semaphore (to avoid the other process doing the same) and when they are finished they perform an up operation freeing it. If the semaphore is already take, the system call \texttt{semop} will block the execution of the process until an up operation is performed on that semaphore.
 \subsection{\texttt{syn2}}
+In this program one process can initially start printing ''ab'', then it alternates execution with the process that prints ''cd''. In this case we use two semaphores: one that allows to print ''ab'' while the other will allow to print ''cd\\n''. The initial state of the semaphores will be ''up'' for the first one while down for the other and the sequence of execution will be:
+\begin{enumerate}
+\item abSem Up, cdSem Down
+\item abSem Down, cdSem Down
+\item print ''ab''
+\item abSem Down, cdSem Up
+\item abSem Down, cdSem Down
+\item print ''cd\\n''
+\item abSem Up, cdSem Down
+\end{enumerate}
+Then the execution repeats itself.
+
 \subsection{\texttt{synthread1}}
 \subsection{\texttt{synthread2}}
 \subsection{\texttt{syn1.java}}
+
 \subsection{\texttt{syn2.java}}
 
 
