@@ -37,17 +37,20 @@
 \section{Answers to the Questions}
 \textbf{Q-A}: How many processes must your shell create when receiving a piped command? How many pipes? Until when must the shell wait to accept another command? \newline
 
-When receiving a piped command, the shell program must create number of pipe symbols + 1 processes. Each command so is managed by one process. In addition the shell must create one pipe for each pair of commands, so one pipe for each pipe symbol. This is due to the fact that the output of one command has to be redirected in the input of the following command, so one pipe for each pair of commands.\newline
+When receiving a commands in pipe, the shell program must create a number of processes equal of the number of pipe symbols found plus one (e.g. cmd1 | cmd2 | cmd3, we have three commands and two pipe symbols). Each command so is managed by one process. \newline
+In addition the shell must create one pipe for each pair of commands, so one pipe for each pipe symbol. This is due to the fact that the output of one command has to be redirected in the input of the following command, so one pipe for each pair of commands.\newline
+The shell will have to wait the termination of all the child processes that are executing the commands in pipe. 
+The processes created to execute the piped commands share the same file descriptors, in particular those for the standard input and output. If the shell were to accept and execute other processes when the ones in the pipe are still executing, the access to the standard input and output would be shared by processes that are doing different things, that may lead to wrong or undesirable results. \newline
+
+\textbf{Q-B}:Can you implement a shell program which only utilizes threads (instead of processes)? If your answer is yes, then write a thread-based version of \texttt{mysh1}, call it \texttt{mysh1\_th}, and include it in your submission. If your answer is no, explain why. \newline
+
+No, it is not possible. To execute shell commands we need to call the ''exec'' function, so we can run programs on ''/bin'' directory. The ''exec'' command, change the code of the current process with another one specified. So, calling an ''exec'' inside a thread cause the change of the code of the entire program, for these reason each command of a shell must be executed by another process. Calling ''exec'' without creating a new process means that the shell program is substituted with the code of the specified command and this is not what we need, because when the command execution is finished we cannot continue to accept other command (the shell code was substituted). \newline
 
 
-\textbf{Q-B}:Can you implement a shell program which only utilizes threads (instead of processes)? If your answer is yes, then write a thread-based version of \texttt{mys}, call it \texttt{$mysh1_th$}, and include it in your submission. If your answer is no, explain why. \newline
+\textbf{Q-C}: Can you use the \texttt{cd} command with shell \texttt{mysh3}? Why?\newline
 
-No, it is not possible. To execute shell commands we need to call the "exec" function, so we can run programs on "/bin" directory. The "exec" command, change the code of the current process with another one specified. So, calling an "exec" inside a thread cause the change of the code of the entire program, for these reason each command of a shell must be executed by another process. Calling "exec" without creating a new process means that the shell program is substituted with the code of the specified command and this is not what we need, because when the command execution is finished we cannot continue to accept other command (the shell code was substituted). \newline
-
-
-\textbf{Q-C}: Can you use the \texttt{cd} command with shell \texttt{my}? Why?\newline
-
-We can use it, but it has no effects inside piped commands. The "cd" command change the directory of the current process, so if we use it as unique command we can see its effect, otherwise on a piped command, one process change directory, but this has no effect neither on the following command (process) nor on the parent process.\newline
+Yes, we can implement the shell to use it. The ''cd'' is not an executable to call but it is implemented inside the shell because it maintains the working directory where shell commands can find files and programs. 
+In mysh3 we can implement ''cd'' to change the current working directory of the shell process when it is the only command present (by invoking \texttt{chdir}). If the command is in pipe with other commands, we have to take the precaution to wait for the first command execution to finish before invoking \texttt{execvp} on the second command, because the first one could have been a ''cd'' that changed the directory, the second one should work on that directory. We could also not allow the ''cd'' command in pipes, then it would be safe to run the two process that executes the commands concurrently (because pipes are blocking so if one process needs to wait for the result of the other it can do it by reading the shared pipe).
 
 
 \section{Programs Descriptions}
