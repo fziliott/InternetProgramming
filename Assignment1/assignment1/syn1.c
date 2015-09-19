@@ -14,22 +14,22 @@ void display(char *str) {
 
 int main() {
     int i;
-    int mutex = semget(IPC_PRIVATE, 1, 0600);
+    int sem = semget(IPC_PRIVATE, 1, 0600);
     struct sembuf up =   {0, 1, 0};
     struct sembuf down = {0, -1, 0};
-    semop(mutex, &up, 1);
+    semop(sem, &up, 1);
     if (fork()) {
         for (i = 0; i < 10; i++) {
-            semop(mutex, &down, 1);
+            semop(sem, &down, 1);
             display("Hello world\n");
-            semop(mutex, &up, 1);
+            semop(sem, &up, 1);
         }
         wait(NULL);
     } else {
         for (i = 0; i < 10; i++) {
-            semop(mutex, &down, 1);
+            semop(sem, &down, 1);
             display("Bonjour monde\n");
-            semop(mutex, &up, 1);
+            semop(sem, &up, 1);
         }
     }
     return 0;
