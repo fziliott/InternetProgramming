@@ -7,7 +7,7 @@
 \begin{document}
 \maketitle
 
-\include{Sections/Introduzione.tex}
+%\include{Sections/Introduzione.tex}
 %\include{Section2}
 %\include{Section3}
 %\include{Section4}
@@ -34,7 +34,32 @@
 % \end{figure}
 %%%***************************************%%
 
+\section{Answers to the Questions}
+\textbf{Q-A}: How many processes must your shell create when receiving a piped command? How many pipes? Until when must the shell wait to accept another command? \newline
 
+
+\textbf{Q-B}:Can you implement a shell program which only utilizes threads (instead of processes)? If your answer is yes, then write a thread-based version of \texttt{mys}, call it \texttt{$mysh1_th$}, and include it in your submission. If your answer is no, explain why. \newline
+
+
+\textbf{Q-C}: Can you use the \texttt{cd} command with shell \texttt{my}? Why?
+
+
+\section{Programs Descriptions}
+\subsection{\texttt{mysh1}}
+This is the simple implementation of a shell that receives one command at a time (without arguments) and executes it. The source of the command is the standard input (\texttt{stdin}), which is the keyboard input stream. The \texttt{getline} function provides the entire content of one line of input from that stream (so it waits to return until the newline character is inserted). The content of the line is stored in the first argument that is passed, while the second one will contain the size of the buffer that is used to store the line. \newline
+
+The call to \texttt{strtok} searches for the start of the command (it skips characters like spaces and tabs) and returns a pointer to that. If no command is found (the newline is inserted before any symbol that may be the start of a command) then the shell will ask for another input line. \newline
+
+If a command is found, first it's compared to the \texttt{exit} directive (to exit the whole program), then a new process is started with the \texttt{fork()} system call to execute the program with the name of the command. The call to \texttt{execvp()} 
+
+\subsection{\texttt{mysh2}}
+\subsection{\texttt{mysh3}}
+\subsection{\texttt{syn1}}
+\subsection{\texttt{syn2}}
+\subsection{\texttt{synthread1}}
+\subsection{\texttt{synthread2}}
+\subsection{\texttt{syn1.java}}
+\subsection{\texttt{syn2.java}}
 
 
 \clearpage
