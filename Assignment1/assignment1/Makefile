@@ -7,6 +7,8 @@ OBJECTS=$(SOURCES_C:.c=.o)
 EXEC = mysh1 mysh2 mysh3 syn1 syn2 synthread1 synthread2
 CLASSES=$(SOURCES_JAVA:.java=.class)
 
+build: all
+	
 all: $(EXEC) java
 
 mysh1: 
