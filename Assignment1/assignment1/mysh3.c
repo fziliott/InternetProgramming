@@ -35,6 +35,9 @@ char **parseArguments(char *input, char *delim, int *size) {
             strcpy(args[args_size], token);
             ++args_size;
         }
+        else{
+            args[args_size]=NULL;
+        }
 
     }
     *size = args_size;
@@ -57,6 +60,8 @@ int main(int argc, char *argv[], char *envp[]) {
     char *input;
     char *token;
     pid_t pid;
+    int pipe_found = 0;
+    char *pch;
 
     while(1) {
         if (getcwd(dir, sizeof(dir)) == NULL) {
@@ -70,9 +75,22 @@ int main(int argc, char *argv[], char *envp[]) {
             exit(1);
         }
 
+        pch = strchr(input, '|');
+        if (pch != NULL)
+            pipe_found = 1;
+
         args = parseArguments(input, "|\n", &args_size);
         if(args_size == -1)
             continue;
+
+        if (pipe_found && args_size == 1) {
+            printf("Error: no command before or after pipe!\n");
+            pipe_found = 0;
+            deallocation(args, args_size);
+            continue;
+        }
+        pipe_found = 0;
+
 
         if(args_size == 1)
             if((token = strtok(input, " \t\n"))  == NULL)
@@ -82,7 +100,8 @@ int main(int argc, char *argv[], char *envp[]) {
         args1 = parseArguments(args[0], " \n\t", &args1_size);
         if(args1_size == -1) {
             printf("Error: no command before pipe!\n");
-            exit(1);
+            deallocation(args, args_size);
+            continue;
         }
 
         if(args_size > 1) {
@@ -91,7 +110,9 @@ int main(int argc, char *argv[], char *envp[]) {
             args2 = parseArguments(args[1], " \n\t", &args2_size);
             if(args2_size == -1) {
                 printf("Error: no command after pipe!\n");
-                exit(1);
+                deallocation(args1, args1_size);
+                deallocation(args, args_size);
+                continue;
             }
 
             if (pipe(fd) < 0) {
