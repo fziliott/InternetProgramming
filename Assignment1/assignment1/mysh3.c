@@ -68,7 +68,7 @@ int main(int argc, char *argv[], char *envp[]) {
             printf("getcwd() error");
             exit(1);
         }
-        printf("mysh1: %s$ ", dir);
+        printf("mysh3: %s$ ", dir);
 
         while(getline(&input, &size, stdin) == -1) {
             printf("Couldn't read the input\n");

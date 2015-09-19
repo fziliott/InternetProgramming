@@ -8,7 +8,7 @@ EXEC = mysh1 mysh2 mysh3 syn1 syn2 synthread1 synthread2
 CLASSES=$(SOURCES_JAVA:.java=.class)
 
 build: all
-	
+
 all: $(EXEC) java
 
 mysh1: 
@@ -20,7 +20,7 @@ mysh3:
 synthread1: 
 		gcc -o synthread1 synthread1.c -lpthread
 synthread2: 
-		gcc -o synthread1 synthread2.c -lpthread
+		gcc -o synthread2 synthread2.c -lpthread
 syn1: 
 		gcc -o syn1 syn1.c
 syn2: 
