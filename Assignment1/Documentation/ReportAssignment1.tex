@@ -86,6 +86,8 @@ To extend \texttt{mysh2} to accept piped commands, we first used an array of poi
 
 This version of the shell accepts only two commands separated by a pipe or just one standard command. To know in which case we are is sufficient to check the size of the array of commands. There could be the possibility that a user insert a piped command (insert the pipe symbol) without one of the two needed commands (e.g. ''|ls'' or ''ls|''). A check in for this case is performed and eventually a message ''no command before or after pipe'' is shown.\newline
 
+If two commands are detected on the string inserted by the user, two new processes are created. In addition a pipe is created. The stdout of the first process is redirected to the writing side of the pipe, while the stdin of the second process is redirected to the reading side of the pipe. Following this way, the output of the first command becomes the input for the second one. \newline
+
 \texttt{mysh3} makes use of the same function that \texttt{mysh2} used:
 \begin{itemize}
 \item{\texttt{char **parseArguments(char *input, char *delim, int *size)}}
