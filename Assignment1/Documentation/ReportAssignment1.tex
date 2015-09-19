@@ -79,24 +79,17 @@ After the call to the function \texttt{parseArguments} has returned, in the arra
 So the array \texttt{args} contains the command and the arguments for it, as required by the system call \texttt{execvp}, that is called by the child process to execute the command.
 
 \subsection{\texttt{mysh3}}
-To extend \texttt{mysh2} to accept piped commands, we first used an array of pointers to the commands and than for each command we used an array of pointers to its arguments. To create the first array we separate strings using the pipe symbol as delimiter (\texttt{strtok}), then to create an array of arguments for each command we used spaces and tabs as delimiter.  \newline
+To extend \texttt{mysh2} to accept piped commands, we first used an array of pointers to the commands and than for each command we used an array of pointers to its arguments. To create the first array we separate strings using the pipe symbol as delimiter (using the function \texttt{strtok}), then to create an array of arguments for each command, using spaces and tabs as delimiters.  \newline
 
-This version of the shell accepts only two commands separated by a pipe or just one standard command. To know in which case we are is sufficient to check the size of the array of commands. There could be the possibility that a user insert a piped command (insert the pipe symbol) without one of the two needed commands (eg. ''|ls'' or ''ls|''). A check in for this case is performed and eventually a message ''no command before or after pipe'' is shown.\newline
+This version of the shell accepts only two commands separated by a pipe or just one standard command. To know in which case we are is sufficient to check the size of the array of commands. There could be the possibility that a user insert a piped command (insert the pipe symbol) without one of the two needed commands (e.g. ''|ls'' or ''ls|''). A check in for this case is performed and eventually a message ''no command before or after pipe'' is shown.\newline
 
-\texttt{mysh3} makes use of these two functions:
+\texttt{mysh3} makes use of the same function that \texttt{mysh2} used:
 \begin{itemize}
-\item{\texttt{char **parseArguments(char *input, char *delim, int *size)}}: takes the string in \texttt{input} and a character array of delimiters and returns an array of pointers to tokens that are obtained from the initial input by separating the tokens with the \texttt{delim}'s characters. The number of tokens is saved in the variable \texttt{size} and the function return the array of pointers to the tokens.
-\item{\texttt{void deallocation(char **array, int size)}}: this function takes an array of pointers to memory locations that were previously allocated with \texttt{malloc} and deallocates them with by invoking \texttt{free} for each pointer.
+\item{\texttt{char **parseArguments(char *input, char *delim, int *size)}}
+\item{\texttt{void deallocation(char **array, int size)}}
 \end{itemize}
+to create the arrays (\texttt{args}, \texttt{args1} and \texttt{args2}) that contain the commands and their arguments, that are then used to as arguments for the invocation of \texttt{execvp}.
 
-After the call to the function \texttt{parseArguments} has returned, in the array \texttt{args} we have:
-\begin{itemize}
-\item \texttt{args[0]}: contains the command to execute (the first token found);
-\item \texttt{args[1]...args[size-1]}: have pointers to the arguments of the command;
-\item \texttt{args[size]}: this is set to be NULL, since the call to \texttt{malloc} and \texttt{realloc} does not initialize the value of the new memory locations.
-\end{itemize}
-
-So the array \texttt{args} contains the command and the arguments for it, as required by the system call \texttt{execvp}, that is called by the child process to execute the command.
 
 \subsection{\texttt{syn1}}
 This program creates two processes that competes to access the same output stream. To avoid that the messages they want to print overlaps, we use one semaphore. Every time one of the processes wants to use the \texttt{display} function, the try to perform a down operation on the semaphore (to avoid the other process doing the same) and when they are finished they perform an up operation freeing it. If the semaphore is already take, the system call \texttt{semop} will block the execution of the process until an up operation is performed on that semaphore.
@@ -112,17 +105,16 @@ In this program one process can initially start printing ''ab'', then it alterna
 \item abSem Up, cdSem Down
 \end{enumerate}
 Then the sequence of execution repeats.
-
-\subsection{\texttt{synthread1}}
-
-\subsection{\texttt{synthread2}}
-
 \subsection{\texttt{syn1.java}}
 This program creates two threads that invoke the same function to display a message. Without mutual exclusion the output of the two programs could overlap with each other. Since the lock Object is the same for the two threads (because it is a static variable of the class) and the code in the synchronized block can be executed only by the thread that has gained possession of the lock, we are guaranteed that the outputs of the threads will not be mixed together.
 \subsection{\texttt{syn2.java}}
 In this case we use a program structure similar to the problem producer/consumer (we can think of the program who prints ''ab'' as the producer and the other as the consumer, with a buffer of size one since everything that is produced needs to be consumed immediately). \newline
 The class \texttt{PrintMonitor} contains both the condition variable (we just need a boolean to allow either one of the threads to access) and the synchronized methods \texttt{printAb} and \texttt{printCd}. The methods needs to be synchronized because the access to the condition variable has to be done in mutual exclusion. \newline
 Both threads just need to invoke their respective methods on the shared monitor object. The code of the methods is symmetrical: if the condition variable is false (true for the other), the thread waits (on the monitor object), when it is woken up by a notify, it checks again the condition variable and proceeds if it has the right value. After printing, it changes the value of the condition variable and notify the other thread, waking it up if it was waiting for a change in the value of that variable. In this way we are sure that the two threads that are running concurrently will alternate, because only one at a time can enter in the synchronized block and because each one has to wait for the other to change the value of the condition variable before advancing.
+\subsection{\texttt{synthread1}}
+In this program two pthreads are created that have the same code (the function \texttt{print} but called with different arguments). The two do the same thing, they try to invoke the \texttt{display} function to write on the standard output. Since the two threads run concurrently, they could interfere with each other. To avoid this we use the primitives \texttt{pthread_mutex_lock} and \texttt{pthread_mutex_unlock} that assure us that only one thread at a time can invoke \texttt{display} (because the code for \texttt{print} is the same for both and the mutex is a global variable that is shared by all the threads born from the same process). At the end we wait for the threads to terminate and destroy the mutex.
+\subsection{\texttt{synthread2}}
+This program has the same structure of \texttt{syn2.java} where the thread that prints ''ab''(\texttt{printAb}) and the one that prints ''cd\n'' (\texttt{printCd}) alternates using mutexes and condition variables. The condition variable \texttt{write_ab} is checked to be \texttt{true} for the first one and \texttt{false} for the second. If the condition is not satisfied the pthread waits until it is notified of a change of the variable from the other pthread. When access in the critical region is gained each pthread does its printing job, change the value of the condition variable to permit access to the other and wakes up it with a \texttt{pthread_cond_signal}, and, finally, release the mutex.
 
 \clearpage
 
