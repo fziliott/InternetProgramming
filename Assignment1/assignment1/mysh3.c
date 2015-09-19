@@ -137,10 +137,22 @@ int main(int argc, char *argv[], char *envp[]) {
             /*creates another process, redirect its stdout to the pipe and try to exec the first retrieved
             command with relative attributes*/
             if (fork() == 0) {
-                dup2(fd[1], 1);
-                if(execvp(args1[0], args1) == -1) {
-                    //exit(1);
-                    kill(getpid(), SIGTERM);
+                if(!strcmp(args1[0], cdCmd)) {
+                    /*if the retrieved command is 'cd' than we update the current directory*/
+                    if(args1[1] == NULL) {
+                        if(chdir("/")) {
+                            printf("%s is not a valid path.\n", args1[1]);
+                        }
+                    } else {
+                        if(chdir(args1[1])) {
+                            printf("%s is not a valid path.\n", args1[1]);
+                        }
+                    }
+                } else {
+                    dup2(fd[1], 1);
+                    if(execvp(args1[0], args1) == -1) {
+                        kill(getpid(), SIGTERM);
+                    }
                 }
             } else {
                 close(fd[1]);
@@ -150,10 +162,23 @@ int main(int argc, char *argv[], char *envp[]) {
             /*creates another process, redirect its stdin to the pipe and try to exec the second retrieved
             command with relative attributes*/
             if (fork() == 0) {
-                dup2(fd[0], 0);
-                if(execvp(args2[0], args2) == -1) {
-                    printf("Command not found!\n");
-                    exit(1);
+                /*if the retrieved command is 'cd' than we update the current directory*/
+                if(!strcmp(args2[0], cdCmd)) {
+                    if(args2[1] == NULL) {
+                        if(chdir("/")) {
+                            printf("%s is not a valid path.\n", args2[1]);
+                        }
+                    } else {
+                        if(chdir(args2[1])) {
+                            printf("%s is not a valid path.\n", args2[1]);
+                        }
+                    }
+                } else {
+                    dup2(fd[0], 0);
+                    if(execvp(args2[0], args2) == -1) {
+                        printf("Command not found!\n");
+                        exit(1);
+                    }
                 }
             } else {
                 close(fd[0]);
@@ -166,9 +191,14 @@ int main(int argc, char *argv[], char *envp[]) {
         } else {    /*there is only one command*/
             /*if the retrieved command is 'cd' than we update the current directory*/
             if(!strcmp(args1[0], cdCmd)) {
-                strcpy(dir, args1[1]); 
-                if(chdir(args1[1])) {
-                    printf("%s is not a valid path.\n", args1[1]);
+                if(args1[1] == NULL) {
+                    if(chdir("/")) {
+                        printf("%s is not a valid path.\n", args1[1]);
+                    }
+                } else {
+                    if(chdir(args1[1])) {
+                        printf("%s is not a valid path.\n", args1[1]);
+                    }
                 }
             } else {
                 /*creates another process and try to exec the retrieved command with
