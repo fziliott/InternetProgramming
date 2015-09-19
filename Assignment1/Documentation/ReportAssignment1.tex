@@ -60,14 +60,15 @@ For the sake of simplicity and correctness, we allocate each time new memory to 
 \texttt{mysh2} makes use of these two functions:
 \begin{itemize}
 \item{\texttt{char **parseArguments(char *input, char *delim, int *size)}}: takes the string in \texttt{input} and a character array of delimiters and returns an array of pointers to tokens that are obtained from the initial input by separating the tokens with the \texttt{delim}'s characters. The number of tokens is saved in the variable \texttt{size} and the function return the array of pointers to the tokens.
-\item{\texttt{void deallocation(char **array, int size)}}: this function takes an array of pointers to memory locations that were previously allocated with \tettt{malloc} and deallocates them with by invoking \texttt{free} for each pointer.
+\item{\texttt{void deallocation(char **array, int size)}}: this function takes an array of pointers to memory locations that were previously allocated with \texttt{malloc} and deallocates them with by invoking \texttt{free} for each pointer.
 \end{itemize}
 
 After the call to the function \texttt{parseArguments} has returned, in the array \texttt{args} we have:
 \begin{itemize}
 \item \texttt{args[0]}: contains the command to execute (the first token found);
 \item \texttt{args[1]...args[size-1]}: have pointers to the arguments of the command;
-\item \texttt{args[size]}: this is set to be NULL, since the call to \textttmalloc} and \texttt{realloc} does not initialize the value of the new memory locations.
+\item \texttt{args[size]}: this is set to be NULL, since the call to \texttt{malloc} and \texttt{realloc} does not initialize the value of the new memory locations.
+\end{itemize}
 
 So the array \texttt{args} contains the command and the arguments for it, as required by the system call \texttt{execvp}, that is called by the child process to execute the command.
 
