@@ -31,14 +31,14 @@ int main(int argc, char *argv[], char *envp[])
             exit(1);
         }
 
-	/*get the first word of the string inserted by the user, if the user inserted anything continue ask for other commands*/
+	/*get the first word of the string inserted by the user, if the user doesn't insert anything, it continues to ask for other commands*/
         if((args[0] = strtok(input, " \t\n"))  == NULL)
             continue;
         args[1] = NULL;
 
         if (!strcmp(args[0], "exit" )) exit(0);
 
-	/*create another process and try to exec the retrieved command*/
+	/*create another process and try to exec the command*/
         pid_t pid = fork();
         if (pid)
         {

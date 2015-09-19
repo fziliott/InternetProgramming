@@ -7,18 +7,14 @@
 
 #define DIR_LENGTH 255  //Standard value for ext4 file system
 
-/*this function takes an array of pointers to memory locations that were previously allocated
-with malloc and deallocates them by invoking free for each pointer.*/
+/*this function takes an array of pointers to memory locations that were previously allocated with malloc and deallocates them by invoking free for each pointer.*/
 void deallocation(char **array, int size) {
     int i;
     for(i = 0; i < size; i++)
         free(array[i]);
 }
 
-/*takes the string in input and a character array of delimiters and returns an array
-of pointers to tokens that are obtained from the initial input by separating the tokens with
-the delim's characters. The number of tokens is saved in the variable size
-and the function return the array of pointers to the tokens.*/
+/*takes the string in input and a character array of delimiters and returns an array of pointers to tokens that are obtained from the initial input by separating the tokens with the delim's characters. The number of tokens is saved in the variable size and the function return the array of pointers to the tokens.*/
 char **parseArguments(char *input, char *delim, int *size) {
     char *token;
     int args_size;
@@ -64,20 +60,18 @@ int main(int argc, char *argv[], char *envp[]) {
         printf("mysh2: %s$ ", dir);
 
         /*gets a string from the user*/
-
         while(getline(&input, &size, stdin) == -1) {
             printf("Couldn't read the input\n");
             exit(1);
         }
 
-        /*splits the string inserted by the user in tokens (command + attributes), if the user inserted
-        anything continue ask for other commands*/
+        /*splits the string inserted by the user in tokens (command + attributes), if the user inserted anything continue ask for other commands*/
         args = parseArguments(input, " \t\n", &args_size);
         if(args_size == -1) {
             continue;
         }
 
-        /*creates another process and try to exec the retrieved command with 
+        /*creates another process and try to exec the command with the
         relative attributes*/
         if (!strcmp(args[0], "exit" )) exit(0);
 
