@@ -73,7 +73,7 @@ int main(int argc, char *argv[], char *envp[]) {
             printf("getcwd() error");
             exit(1);
         }
-        printf("mysh3: %s$ ", dir);
+        printf("mysh3: %s$", dir);
 
         /*gets a string from the user*/
         while(getline(&input, &size, stdin) == -1) {
@@ -137,7 +137,10 @@ int main(int argc, char *argv[], char *envp[]) {
             /*creates another process, redirect its stdout to the pipe and try to exec the first retrieved
             command with relative attributes*/
             if (fork() == 0) {
+                if (!strcmp(args1[0], "exit" )) exit(0);
+
                 if(!strcmp(args1[0], cdCmd)) {
+
                     /*if the retrieved command is 'cd' than we update the current directory*/
                     if(args1[1] == NULL) {
                         if(chdir("/")) {
@@ -162,6 +165,8 @@ int main(int argc, char *argv[], char *envp[]) {
             /*creates another process, redirect its stdin to the pipe and try to exec the second retrieved
             command with relative attributes*/
             if (fork() == 0) {
+                if (!strcmp(args2[0], "exit" )) exit(0);
+
                 /*if the retrieved command is 'cd' than we update the current directory*/
                 if(!strcmp(args2[0], cdCmd)) {
                     if(args2[1] == NULL) {
@@ -189,6 +194,7 @@ int main(int argc, char *argv[], char *envp[]) {
             deallocation(args, args_size);
 
         } else {    /*there is only one command*/
+            if (!strcmp(args1[0], "exit" )) exit(0);
             /*if the retrieved command is 'cd' than we update the current directory*/
             if(!strcmp(args1[0], cdCmd)) {
                 if(args1[1] == NULL) {

@@ -34,5 +34,6 @@ int main() {
             semop(sem, &up, 1);         //exit the critical section
         }
     }
+    semctl(sem, 0, IPC_RMID);
     return 0;
 }

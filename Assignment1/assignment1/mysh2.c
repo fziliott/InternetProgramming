@@ -57,7 +57,7 @@ int main(int argc, char *argv[], char *envp[]) {
             printf("getcwd() error");
             exit(1);
         }
-        printf("mysh2: %s$ ", dir);
+        printf("mysh2: %s$", dir);
 
         /*gets a string from the user*/
         while(getline(&input, &size, stdin) == -1) {
@@ -71,7 +71,7 @@ int main(int argc, char *argv[], char *envp[]) {
             continue;
         }
 
-        /*creates another process and try to exec the command with the
+        /*creates another process and try to exec the retrieved command with
         relative attributes*/
         if (!strcmp(args[0], "exit" )) exit(0);
 

@@ -18,8 +18,8 @@ class PrintThread extends Thread {
 public class syn1 {
     public static void main(String[] args) {
 
-        PrintThread t1 = new PrintThread("Hello_world\n");
-        PrintThread t2 = new PrintThread("Bonjour_monde\n");
+        PrintThread t1 = new PrintThread("Hello world\n");
+        PrintThread t2 = new PrintThread("Bonjour monde\n");
 
         t1.start();
         t2.start();

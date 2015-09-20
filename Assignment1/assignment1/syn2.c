@@ -38,5 +38,8 @@ int main() {
             semop(sem, &ab_up, 1);      //unlock the semaphore for the other process
         }
     }
+    semctl(sem, 0, IPC_RMID);
+    semctl(sem, 1, IPC_RMID);
+
     return 0;
 }

@@ -14,6 +14,14 @@ int ab_turn = TRUE;
 pthread_cond_t cond_p;
 pthread_cond_t cond_c;
 
+void display(char *str) {
+    char *tmp;
+    for (tmp = str; *tmp; tmp++) {
+        write(1, tmp, 1);
+        usleep(100);
+    }
+}
+
 /*code for first pthread*/
 void *printAb(void *s) {
     int i;
@@ -26,7 +34,7 @@ void *printAb(void *s) {
 
         /*set the turn for the other pthread*/
         ab_turn = FALSE;
-        printf("ab");
+        display("ab");
         pthread_cond_signal(&cond_c);   //notify the other pthread
         pthread_mutex_unlock(&mutex);   //exit the critical section
     }
@@ -42,7 +50,7 @@ void *printCd(void *s) {
             pthread_cond_wait(&cond_c, &mutex);
         /*set the turn for the other pthread*/
         ab_turn = TRUE;
-        printf("cd\n");
+        display("cd\n");
         pthread_cond_signal(&cond_p);    //notify the other pthread
         pthread_mutex_unlock(&mutex);   //exit the critical section
     }

@@ -22,7 +22,7 @@ int main(int argc, char *argv[], char *envp[])
             printf("getcwd() error");
             exit(1);
         }
-        printf("mysh1: %s$ ", dir);
+        printf("mysh1: %s$", dir);
 	
 	/*get a string from the user*/
         while(getline(&input, &size, stdin) == -1)

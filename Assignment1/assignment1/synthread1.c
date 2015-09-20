@@ -26,7 +26,7 @@ void *print(void *s) {
 }
 
 int main() {
-    char *s[] = {"Hello World\n", "Bonjour Monde\n"};
+    char *s[] = {"Hello world\n", "Bonjour monde\n"};
     pthread_t tid[2];       //array of pthread pointers
     int i, err;
 
