@@ -41,4 +41,21 @@
 
 %\bibbycategory % equivale a dare un \printbibliography per ogni categoria
 
+Q-B: If 20 different clients try to connect our server there could be problems on accepting all requests because of the backlog. The backlog indicate the maximum number of pending requests, so requests that hasn't been already accepted by the server. The iterative server is the worst because before accepting another connection has to finalize the current one. The preforking mode is the best, to have 4 preforked process is enought to avoid any problem.
+
+Q-C: The problem is that we have to modify the counter from different processes, so counter is a shared variable. We addressed this problem using a semaphore to protect the incrementation of the counter that represent a critic section of the code that must be executed in mutual exclusion. A different approach could be to increment the counter in the parent process (so only one process modify this variable) and communicate the new value to the child.
+
+Q-D: Yes, we have the same problem. Approach one is applicable also to this version of the server, while the second approach no because the parent after have preforked his childs doesn't deal with the request of communications. 
+
+(we have to add mutex on accept for preforking -> no waste of time)
+
+Q-D: Which kind of server more appropriate for talk? iterative, one per, pref, why
+The most appropriate server mode is the preforking because we have to manage both the send and the recieve of messages. Two processes are needed and knowing in advance the number of needed processes it is more convenient to use a preforking approach.
+
+Q-E: Yes, we can run two instances of the program on the same machine for both (a) and (b) options. Messages will be sent correctly and the right combination (server-client) will be created looking on the tuple (srcIP, srcPORT, dstIP,dstPORT) that is unique for every TCP connection.
+
+Q-F: a) With only one process/thread it is possible to use the select statement to avoid the blocking read. 
+b) One process/thread manage the read and another one the write, so only one process is blocked on the read statement.
+We have used the second approach.
+
 \end{document}
