@@ -53,7 +53,8 @@ int main(int argc, char **argv) {
         perror("read");
         exit(1);
     }
-    printf("I received: %d\n", buf);
+    int msg = ntohl(buf);
+    printf("I received: %d\n", msg);
 
     close(socketfd);
 

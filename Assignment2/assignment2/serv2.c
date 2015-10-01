@@ -63,9 +63,11 @@ int main(void) {
 
 void treat_request(int socketfd, int sem, int *counter) {
     semop(sem, &down, 0);
-    int res = (*counter)++;
+    (*counter)++;
+    uint32_t msg = htonl(*counter);
     semop(sem, &up, 0);
-    if (writen(socketfd, (void *)&res, sizeof(int)) == -1) {
+
+    if (writen(socketfd, (void *)&msg, sizeof(int)) == -1) {
         int i;
         perror("send");
     }
@@ -80,6 +82,9 @@ int openSocket(struct sockaddr_in *server_addr) {
     }
     int enable = 1;
     if(setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+        perror("Error setting socket options");
+    }
+     if(setsockopt(socketfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0) {
         perror("Error setting socket options");
     }
 

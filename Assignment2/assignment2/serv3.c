@@ -16,16 +16,18 @@
 #define NB_PROC 10
 
 int *counter;
-int sem;
+int mutex;
 int socketfd;
 
-struct sembuf up =   {0, 1, 0}; //struct for the UP() operation on semaphore
-struct sembuf down = {0, -1, 0};//struct for the DOWN() operation on semaphore
+struct sembuf acceptUp =   {0, 1, 0};
+struct sembuf counterUp =   {1, 1, 0};
+struct sembuf acceptDown = {0, -1, 0};
+struct sembuf counterDown = {1, -1, 0};
 
 void sig_chld(int a);
 void handler() {
     close(socketfd);
-    semctl(sem, 0, IPC_RMID);
+    semctl(mutex, 0, IPC_RMID);
     exit(1);
 }
 ssize_t writen(int fd, const void *vptr, size_t n);
@@ -42,8 +44,10 @@ int main(void) {
     int num;
     struct sockaddr_in server_addr;
 
-    sem = semget(IPC_PRIVATE, 1, 0600);     //semaphore
-    semop(sem, &up, 1);     //at the begin the semaphore must be set to 1 (open)
+    mutex = semget(IPC_PRIVATE, 2, 0600);     //semaphore
+    semop(mutex, &acceptUp, 1);     //at the begin the semaphore must be set to 1 (open)
+    semop(mutex, &counterUp, 1);     //at the begin the semaphore must be set to 1 (open)
+
     int id = shmget(IPC_PRIVATE, sizeof(int), 0600 | IPC_CREAT);
     if (id < 0) {
         perror("Error shmget");
@@ -64,11 +68,12 @@ int main(void) {
 
 
 void treat_request(int sfd) {
-    semop(sem, &down, 0);
-    int res = (*counter)++;
-    semop(sem, &up, 0);
+    semop(mutex, &counterDown, 0);
+    (*counter)++;
+    uint32_t msg = htonl(*counter);
+    semop(mutex, &counterUp, 0);
 
-    if (writen(sfd, (void *)&res, sizeof(int)) == -1) {
+    if (writen(sfd, (void *)&msg, sizeof(int)) == -1) {
         perror("send");
     }
 }
@@ -78,7 +83,10 @@ void recv_requests(int sfd) { /* An iterative server */
     int addrlen = sizeof(struct sockaddr_in);
 
     while (1) {
+        semop(mutex, &acceptDown, 1);
         int newsfd = accept(sfd, (struct sockaddr *) &client_addr, &addrlen);
+        semop(mutex, &acceptUp, 1);
+
         printf("%d\n", newsfd);
         if(newsfd < 0)
             continue;
@@ -95,6 +103,9 @@ int openSocket(struct sockaddr_in *server_addr) {
     }
     int enable = 1;
     if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+        perror("Error setting socket options");
+    }
+     if(setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0) {
         perror("Error setting socket options");
     }
 

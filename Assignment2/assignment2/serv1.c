@@ -34,7 +34,8 @@ ssize_t writen(int fd, const void *vptr, size_t n) {
 
 void treat_request(int socket) {
     counter++;
-    if (writen(socket, (void *)&counter, sizeof(int)) == -1) {
+    uint32_t msg=htonl(counter);
+    if (writen(socket, (void *)&msg, sizeof(int)) == -1) {
         int i;
         perror("send");
     }
@@ -51,6 +52,9 @@ int main(void) {
     }
     int enable = 1;
     if(setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+        perror("Error setting socket options");
+    }
+     if(setsockopt(sfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0) {
         perror("Error setting socket options");
     }
 
