@@ -28,29 +28,23 @@
 #define PORT 5555
 
 int done = 0;
-
-//char name[20];
-
 int sockfd;
-WINDOW *recieve_win;
+
+WINDOW *receive_win;
 WINDOW *send_win;
-int line = 1; // Line position of recieve_win
-int input = 1; // Line position of recieve_win
-int maxx, maxy; // Screen dimensions
-//pthread_mutex_t mutexsum = PTHREAD_MUTEX_INITIALIZER;
-int mutex;
-struct sembuf up = {0, 1, 0};
-struct sembuf down = {1, 1, 0};
+int receive_win_line = 1;
+int send_win_line = 1;
+int width, height;
 
-void *sendmessage(void *name);
+void *send_message();
 
-void *listener();
+void *get_message();
 
 void handler() {
     close(sockfd);
-    endwin();
-    //pthread_mutex_destroy(&mutexsum);
-    exit(1);
+    wclear(receive_win);
+    wclear(send_win);
+    exit(0);
 }
 
 ssize_t writen(int fd, const void *vptr, size_t n) {
@@ -104,29 +98,22 @@ int openSocket(struct sockaddr_in *server_addr) {
 }
 
 int main(int argc, char **argv) {
-    mutex = semget(IPC_PRIVATE, 1, 600);
-    semop(mutex, &up, 1);
 
-    char name[] = "Fabrizio";
-
-    // Set up windows
+    /*windows setting*/
     initscr();
-    getmaxyx(stdscr, maxy, maxx);
-
-    recieve_win = newwin(maxy / 2, maxx, 0, 0);
-    send_win = newwin(maxy / 2, maxx, maxy / 2, 0);
-
-    scrollok(recieve_win, TRUE);
+    getmaxyx(stdscr, height, width);
+    receive_win = newwin(height / 2, width, 0, 0);
+    send_win = newwin(height / 2, width, height / 2, 0);
+    //whline(send_win, 1,width);
+    wborder(receive_win,' ',' ',' ','_',' ',' ',' ',' ');
+    scrollok(receive_win, TRUE);
     scrollok(send_win, TRUE);
-    box(recieve_win, '|', '=');
-    box(send_win, '|', '-');
-
-    wsetscrreg(recieve_win, 1, maxy / 2 - 2);
-    wsetscrreg(send_win, 1, maxy / 2 - 2);
-    wrefresh(recieve_win);
+    wsetscrreg(receive_win, 1, height / 2 - 2);
+    wsetscrreg(send_win, 1, height / 2 - 2);
+    wrefresh(receive_win);
     wrefresh(send_win);
 
-
+    /*client*/
     if(argc == 2) {
         struct sockaddr_in remote;
         struct hostent *host;
@@ -159,145 +146,83 @@ int main(int argc, char **argv) {
             perror("connect");
             exit(1);
         }
-    } else {
+    } else {    /*server*/
         int num;
         struct sockaddr_in server_addr, client_addr;;
         sockfd = openSocket(&server_addr);
-        signal(SIGINT, handler);
         int yes = 1;
-        /*ignore 'address already in use'*/
+        /*ignore address already in use'*/
         if ( setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1 ) {
             perror("setsockopt");
         }
+        /*ignore port already in use'*/
         if ( setsockopt(sockfd, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(int)) == -1 ) {
             perror("setsockopt");
         }
         int addrlen = sizeof(struct sockaddr_in);
         sockfd = accept(sockfd, (struct sockaddr *) &client_addr, &addrlen);
-        printf("Request\n");
-        if(sockfd < 0)
-            exit(1);
+        //printf("Request\n");
+        if(sockfd < 0) {
+            handler();
+        }
     }
 
-    int len;
-    int result;
-    char buf[256];
+    signal(SIGINT, handler);
 
-    // Set up threads
     pthread_t threads[2];
     void *status;
     pthread_attr_t attr;
     pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    //pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-    // Spawn the listen/receive deamons
-    pthread_create(&threads[0], &attr, sendmessage, (void *)name);
-    pthread_create(&threads[1], &attr, listener, NULL);
-    //pthread_join();
+    pthread_create(&threads[0], &attr, send_message, NULL);
+    pthread_create(&threads[1], &attr, get_message, NULL);
 
-    // Keep alive until finish condition is done
-    //while(!done);
-
-    /*if (fork() == 0) {
-        sendmessage(name);
-    } else listener();*/
     pthread_join(threads[0], NULL);
     pthread_join(threads[1], NULL);
 
 }
 
 
-void *sendmessage(void *name) {
+void *send_message() {
 
-    char str[80];
-    char msg[100];
-    int bufsize = maxx - 4;
-    char *buffer = malloc(bufsize);
+    char message[512];
 
     while(1) {
-        //bzero(str, 80);
-        //bzero(msg, 100);
-        //bzero(buffer, bufsize);
-        wrefresh(recieve_win);
+        bzero(message, 512);
+        wrefresh(receive_win);
         wrefresh(send_win);
 
-        // Get user's message
-        mvwgetstr(send_win, input, 2, str);
+        mvwgetstr(send_win, send_win_line, 2, message);
+        writen(sockfd, message, strlen(message) + 1);
 
-        // Build the message: "name: message"
-        strcpy(msg, name);
-        strncat(msg, ": \0", 100 - strlen(str));
-        strncat(msg, str, 100 - strlen(str));
+        if(send_win_line < height / 2 - 2)
+            send_win_line++;
+        else scroll(send_win);
 
-        /*// Check for quiting
-        if(strcmp(str, "exit") == 0) {
-
-            done = 1;
-
-            // Clean up
-            endwin();
-            //pthread_mutex_destroy(&mutexsum);
-            //pthread_exit(NULL);
-            close(sockfd);
-        }*/
-
-        // Send message to server
-        writen(sockfd, msg, strlen(msg));
-
-        // write it in chat window (recieve_win)
-        //mvwprintw(recieve_win, line, 2, msg);
-
-
-        // scroll the recieve_win if the line number exceed height
-        //pthread_mutex_lock (&mutexsum);
-        /*semop(mutex,&down,1);
-        if(line != maxy / 2 - 2)
-            line++;
-        else
-            scroll(recieve_win);*/
-
-        // scroll the send_win if the line number exceed height
-        if(input != maxy / 2 - 2)
-            input++;
-        else
-            scroll(send_win);
-        //semop(mutex,&up,1);
-
-        //pthread_mutex_unlock (&mutexsum);
     }
 }
 
 
-// Listen for messages and display them
-void *listener() {
-    char str[80];
-    int bufsize = maxx - 4;
-    char *buffer = malloc(bufsize);
+void *get_message() {
+    char message[512];
 
     while(1) {
-        bzero(buffer, bufsize);
-        wrefresh(recieve_win);
+        bzero(message, 512);
+        wrefresh(receive_win);
         wrefresh(send_win);
 
-        //Receive message from server
-        if((recv(sockfd, buffer, bufsize, 0)) <= 0) {
+        if((recv(sockfd, message, 512, 0)) <= 0) {
             handler();
             exit(1);
         }
 
-        //read(sockfd, buffer, bufsize);
+        mvwprintw(receive_win, receive_win_line, 2, message);
 
-        //Print on own terminal
-        mvwprintw(recieve_win, line, 2, buffer);
+        if(receive_win_line < height / 2 - 2)
+            receive_win_line++;
+        else scroll(receive_win);
 
-        // scroll the recieve_win if the line number exceed height
-        //pthread_mutex_lock (&mutexsum);
-        //semop(mutex, &down, 1);
-        if(line != maxy / 2 - 2)
-            line++;
-        else
-            scroll(recieve_win);
-        //pthread_mutex_unlock (&mutexsum);
-        //semop(mutex, &up, 1);
+
     }
 }
