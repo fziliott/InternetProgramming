@@ -1,0 +1,77 @@
+\input{prelude.tex}
+\input{config.tex}
+
+
+%%%%%%%%%%%%%%%%% END OF PREAMBLE %%%%%%%%%%%%%%%%
+
+\begin{document}
+\maketitle
+
+%\include{Sections/Introduzione.tex}
+%\include{Section2}
+%\include{Section3}
+%\include{Section4}
+%\include{Conclusion}
+
+%*******    Figure and Subfigure example ***********
+%\begin{figure}[tbh]
+% \includegraphics[width=1\linewidth]{circle}
+% \caption[Circonferenza]{Circle}
+% \label{fig:circle}
+% \end{figure}%
+
+% \begin{figure}[tbh]
+% \begin{subfigure}{.5\textwidth}
+% \includegraphics[width=1\linewidth]{circle}
+% \caption[Circonferenza]{Circle}
+% \label{fig:circle}
+% \end{subfigure}%
+% \begin{subfigure}{0.5\textwidth}
+% \includegraphics[width=1\linewidth]{random}
+% \caption[Random]{Random}
+% \label{fig:random}
+% \end{subfigure}
+% \end{figure}
+%%%***************************************%%
+\section{Report}
+\subsection{serv1}
+\texttt{serv1} is an iterative server. It creates the connection and bind itself to the localhost address and the port 4444. After that it enters an infinite loop where it accept connection requests from clients. Every new request is processed sequentially with the call to the function \texttt{treat\_request} that increments the global variable \texttt{counter} and send the variable to the client. Before sending, the counter is converted from host byte order to network byte order to allow interoperability.
+
+\subsection{serv2}
+It works the same way as \texttt{serv1} but each request is performed on a different process (while all the accept are done by the server). To avoid race condition on the common variable \texttt{counter}, we use semaphores between the incrementation of its value. 
+To clean the shared memory, close the semaphore and the sockets, we attached a handler to the SIG\_INT signal that is sent when in the parent a Ctrl+C command is issued.
+
+\subsection{serv3}
+In this case, the server creates a number (NB\_PROC) of child processes that execute concurrently. These will wait to accept incoming request on the same socket. To prevent that when a message arrives every process waiting to read on that socket wakes up, we added a semaphore. In this way only one process at a time will be able to perform accept and it will free the semaphore for the others as soon as a connection is established. The rest of the program works in the same way as \texttt{serv2}, with a common \texttt{counter} variable that is protected by a semaphore.
+
+\subsection{talk}
+The talk program works both as client and server depending on the input parameters. If no parameters is passed to the main function, talk starts as a server (it binds itself to port 5555) and waits for incoming connection with \texttt{accept}. If there is one parameter, it starts as a client. The parameter must contain the name of the address that we want to contact (we use \texttt{gethostbyname} to convert a host name in an address). After the connection is established the two modes are equivalent and exchange messages through the created TCP connection. 
+We implemented the talk program with two different threads:
+\begin{itemize}
+\item a thread that waits for incoming messages on a socket and prints them on the top half of the shell window;
+\item a thread that get the string inserted by the user in the standard input and sends it (when a the end of line is found) to the connected party on the same socket.
+\end{itemize}
+
+
+\section{Answers to the Questions}
+
+Q-A: The SPARKstation 10 has a big endian CPU architecture, which is different than the more common little endian used today in most CPUs. The endianess indicate the way in which numbers are represented in binary format (from the most or the least significant bit). That means if an integer is transferred from a little endian machine to a big endian one, the numbers seen will differ. Since the representation of the numbers in our laptops and the SPARKstation 10 are different, just sending the numbers would not work (while it works between machines with the same endianess). To avoid any sort of problem, in our code, we convert the byte order representation of the host (the sending machine) in network order (which is big endian) and are converted back (from network order to host order) when packets are received. To do that we use the standard conversion function in \texttt{<arpa/inet.h>}.
+%\bibbycategory % equivale a dare un \printbibliography per ogni categoria
+
+Q-B: If 20 different clients try to connect our server some of the connection attempt could get rejected if the set backlog is too small. The backlog indicate the maximum number of allowed pending requests (requests that have been received by the network stack but are not yet accepted by a process). When the backlog queue is full, new requests are discarded by the network stack and are lost. The iterative server is the worst because before accepting another connection has to finalize the current one. Since all the 20 requests come at the same time, while the server process the first, the others go into the backlog queue. If the backlog value is set less than 20 (like in our case where we use 5), connections attempt will probably be dropped. The preforking server avoids this problem by assigning a new process at each new connection, so when one is processed, the server can wait for another one with the call to \texttt{accept}. Since we have 10 preforked processes, the first 10 connection will be accepted while other 5 can be in the backlog queue. If the time in which requests are processed is long and the request comes near each other, it's possible to lose some connection attempt (but fewer than for the iterative server). The one process per connection server works the same way as the preforked version but adds a little initial delay for the creation of the processes, so it will performs slightly worse in this case. \newline
+
+Q-C: The problem is that we have to modify the counter from different processes, so counter needs to be a shared variable. To avoid race condition when accessing the variable, we use a semaphore to protect the operation of incrementing the counter, which is critic section of the code. In this way only one process at a time can write the value of counter. A different approach could be to increment the counter in the parent process (so only one process modify this variable) and communicate the new value to the children processes.\newline
+
+Q-D (first): Yes, the problem is the same because multiple processes need to change the value of the same variable, the only difference is when the process are created. A semaphore is a correct solution because the shared variable will be accessed in mutual exclusion, so the operation of reading and increasing the value of the counter can be done without other processes interfering. The second approach (the parent keeps the counter and the children communicates with the parent process) is also applicable, but it needs a different implementation. In this case, since it's the children that process the requests, the parent will have to wait to read in a common file descriptor that every child can use to communicate and retrieve the new value of counter. To prevent overlapping in the access to the common communication channel we need to have access in mutual exclusion with a semaphore.
+Approach one is applicable also to this version of the server, while the second approach no because the parent after have preforked his children doesn't deal with the request of communications. \newline
+
+
+Q-D (second): The talk server needs to wait for two different type of events at the same time: the input from the local client and a message coming from remote, with different type of actions to perform. This can't be done in an iterative way (that is used to respond to the same type of requests). The one process per client would work but there is no need to create new processes on every connections if we assume that only one client is connected at a time. The preforked mode (with two processes, one for waiting messages on the connection, the other for the user input) is ideal for this situation, because all the preforked processes are used to their maximum. \newline
+
+Q-E: Yes, we can do that in both cases. When a TCP connection is created, it uses the combination (srcIP, srcPORT, dstIP,dstPORT) to direct the messages to the right listening process. So if the clients that connects to a \texttt{talk} server use different ports (destination ports), even if they have the the same IP address and destination IP/Port, the network stack is able to deliver the messages to the correct server. So once the connections are created, we can run multiple client/server and multiple servers on the same machine. One problem could be the binding of multiple servers (the second problem) to the same IP/Port (that gives the error \texttt{EADDRINUSE}), which can be solved with the options \texttt{SO\_REUSEADDR} and \texttt{SO\_REUSEPORT} during the binding of the socket. \newline
+
+Q-F: a) With only one process/thread it is possible to use the select statement to avoid the blocking read. We can use a select statement on two type of input: that from the standard input (the local messages of the client) and a socket where we retrieve messages from the remote partner. If either one of the two contains something, we can use its content to either send in the connection (if it was from the standard input) or to print on the screen (if it was the remote message);
+b) We can use one process/thread to manage wait for the input of the user (and when it is available it is sent on the network) while the other, at the same time, waits for incoming data on a socket and prints it on the screen.
+We decided to use threads because the two activities are independent of each other and it's easy to use two different threads (one that waits the standard input, the other the remote messages). There is also a problem with the select statement solution. When checking for the presence of data in the standard input, it returns true when there are character buffered even without a carriage return (so an incomplete message). That means we either have to block until the user finishes the message (but in this way we can't receive any more remote messages) or we get one character at a time and process them individually instead of using the standard implementation of the operating system.
+
+\end{document}
