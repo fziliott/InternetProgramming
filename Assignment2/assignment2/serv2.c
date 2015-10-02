@@ -14,12 +14,16 @@
 #define BACKLOG 5
 #define PORT 4444
 
-int counter = 0;
+int id;
+int *counter;
+int socketfd;
+int sem;
 
 struct sembuf up =   {0, 1, 0}; //struct for the UP() operation on semaphore
 struct sembuf down = {0, -1, 0};//struct for the DOWN() operation on semaphore
 
 void sig_chld(int a);
+void handler();
 
 ssize_t writen(int fd, const void *vptr, size_t n);
 
@@ -28,14 +32,13 @@ int openSocket(struct sockaddr_in *server_addr);
 void treat_request(int socketfd, int sem, int *counter);
 
 int main(void) {
-    int *counter;
-    int socketfd, newsfd;
+    int newsfd;
     struct sockaddr_in server_addr, client_addr;
 
 
-    int sem = semget(IPC_PRIVATE, 1, 0600);     //semaphore
+    sem = semget(IPC_PRIVATE, 1, 0600);     //semaphore
     semop(sem, &up, 1);     //at the begin the semaphore must be set to 1 (open)
-    int id = shmget(IPC_PRIVATE, sizeof(int), 0600 | IPC_CREAT);
+    id = shmget(IPC_PRIVATE, sizeof(int), 0600 | IPC_CREAT);
     if (id < 0) {
         perror("Error shmget");
         exit(1);
@@ -46,6 +49,7 @@ int main(void) {
     socketfd = openSocket(&server_addr);
 
     signal(SIGCHLD, sig_chld);
+    signal(SIGINT, handler);
     while (1) {
         int addrlen = sizeof(struct sockaddr_in);
         newsfd = accept(socketfd, (struct sockaddr *) &client_addr, &addrlen);
@@ -66,11 +70,11 @@ void treat_request(int socketfd, int sem, int *counter) {
     (*counter)++;
     uint32_t msg = htonl(*counter);
     semop(sem, &up, 0);
-
     if (writen(socketfd, (void *)&msg, sizeof(int)) == -1) {
         int i;
         perror("send");
     }
+    close(socketfd);
 }
 
 
@@ -128,4 +132,12 @@ ssize_t writen(int fd, const void *vptr, size_t n) {
 void sig_chld(int a) {
     while (waitpid(0, NULL, WNOHANG) > 0) {}
     signal(SIGCHLD, sig_chld);
+}
+
+void handler(){
+    shmdt((void*)counter);
+    shmctl(id, IPC_RMID, 0);
+    close(socketfd);
+    semctl(sem, 0, IPC_RMID);
+    exit(0);
 }

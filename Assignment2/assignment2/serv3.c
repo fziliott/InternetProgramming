@@ -15,6 +15,7 @@
 #define PORT 4444
 #define NB_PROC 10
 
+int id;
 int *counter;
 int mutex;
 int socketfd;
@@ -26,10 +27,15 @@ struct sembuf counterDown = {1, -1, 0};
 
 void sig_chld(int a);
 void handler() {
+    shmdt((void*) counter);
+    shmctl(id, IPC_RMID, 0);
     close(socketfd);
+    //printf("%d\n", socketfd);
+    //printf("closing\n" );
     semctl(mutex, 0, IPC_RMID);
-    exit(1);
+    exit(0);
 }
+
 ssize_t writen(int fd, const void *vptr, size_t n);
 
 int openSocket(struct sockaddr_in *server_addr);
@@ -48,7 +54,7 @@ int main(void) {
     semop(mutex, &acceptUp, 1);     //at the begin the semaphore must be set to 1 (open)
     semop(mutex, &counterUp, 1);     //at the begin the semaphore must be set to 1 (open)
 
-    int id = shmget(IPC_PRIVATE, sizeof(int), 0600 | IPC_CREAT);
+    id = shmget(IPC_PRIVATE, sizeof(int), 0600 | IPC_CREAT);
     if (id < 0) {
         perror("Error shmget");
         exit(1);
@@ -59,11 +65,21 @@ int main(void) {
     socketfd = openSocket(&server_addr);
     signal(SIGINT, handler);
 
-    for (num = 0; num < NB_PROC; num++)
+    for (num = 0; num < NB_PROC; num++){
         if (fork() == 0) {
+            signal(SIGINT, handler);
             recv_requests(socketfd);
         }
-    wait(NULL);
+    }
+    int * status;
+    printf("%d\n", getpid());
+//waitpid(-1, &status, 0);
+    int cont=NB_PROC;
+    while(cont>0){
+        wait(NULL);
+        printf("%d\n", NB_PROC-cont);
+        cont--;
+    }
 }
 
 
@@ -79,6 +95,7 @@ void treat_request(int sfd) {
 }
 
 void recv_requests(int sfd) { /* An iterative server */
+
     struct sockaddr_in client_addr;
     int addrlen = sizeof(struct sockaddr_in);
 
@@ -87,7 +104,6 @@ void recv_requests(int sfd) { /* An iterative server */
         int newsfd = accept(sfd, (struct sockaddr *) &client_addr, &addrlen);
         semop(mutex, &acceptUp, 1);
 
-        printf("%d\n", newsfd);
         if(newsfd < 0)
             continue;
         treat_request(newsfd);
