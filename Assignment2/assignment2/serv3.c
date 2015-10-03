@@ -15,23 +15,23 @@
 #define PORT 4444
 #define NB_PROC 10
 
-int id;
-int *counter;
-int mutex;
-int socketfd;
+int id;         //shared memory id
+int *counter;   //shared variable
+int mutex;      //semaphore to protect access to shared variable
+int socketfd;   //socket id
 
-struct sembuf acceptUp =   {0, 1, 0};
-struct sembuf counterUp =   {1, 1, 0};
-struct sembuf acceptDown = {0, -1, 0};
-struct sembuf counterDown = {1, -1, 0};
+struct sembuf acceptUp =   {0, 1, 0};   //struct for the UP() operation on semaphore 0
+struct sembuf counterUp =   {1, 1, 0};  //struct for the UP() operation on semaphore 1
+struct sembuf acceptDown = {0, -1, 0};  //struct for the DOWN() operation on semaphore 0
+struct sembuf counterDown = {1, -1, 0}; //struct for the DOWN() operation on semaphore 1
 
 void sig_chld(int a);
+
+/*finalization function, for a safe closure*/
 void handler() {
-    shmdt((void*) counter);
+    shmdt((void *) counter);
     shmctl(id, IPC_RMID, 0);
     close(socketfd);
-    //printf("%d\n", socketfd);
-    //printf("closing\n" );
     semctl(mutex, 0, IPC_RMID);
     exit(0);
 }
@@ -50,10 +50,12 @@ int main(void) {
     int num;
     struct sockaddr_in server_addr;
 
-    mutex = semget(IPC_PRIVATE, 2, 0600);     //semaphore
-    semop(mutex, &acceptUp, 1);     //at the begin the semaphore must be set to 1 (open)
-    semop(mutex, &counterUp, 1);     //at the begin the semaphore must be set to 1 (open)
+    /*semaphores creation and initialization*/
+    mutex = semget(IPC_PRIVATE, 2, 0600);
+    semop(mutex, &acceptUp, 1);     //at the begin the semaphore 0 must be set to 1 (open)
+    semop(mutex, &counterUp, 1);     //at the begin the semaphore 1 must be set to 1 (open)
 
+    /*use shared memory for the counter*/
     id = shmget(IPC_PRIVATE, sizeof(int), 0600 | IPC_CREAT);
     if (id < 0) {
         perror("Error shmget");
@@ -65,24 +67,22 @@ int main(void) {
     socketfd = openSocket(&server_addr);
     signal(SIGINT, handler);
 
-    for (num = 0; num < NB_PROC; num++){
+    for (num = 0; num < NB_PROC; num++) {
         if (fork() == 0) {
             signal(SIGINT, handler);
             recv_requests(socketfd);
         }
     }
-    int * status;
-    printf("%d\n", getpid());
-//waitpid(-1, &status, 0);
-    int cont=NB_PROC;
-    while(cont>0){
+    int *status;
+    int cont = NB_PROC;
+    while(cont > 0) {
         wait(NULL);
-        printf("%d\n", NB_PROC-cont);
+        printf("%d\n", NB_PROC - cont);
         cont--;
     }
 }
 
-
+/*manage a new connection*/
 void treat_request(int sfd) {
     semop(mutex, &counterDown, 0);
     (*counter)++;
@@ -94,8 +94,8 @@ void treat_request(int sfd) {
     }
 }
 
-void recv_requests(int sfd) { /* An iterative server */
-
+/*accept a new connection*/
+void recv_requests(int sfd) { 
     struct sockaddr_in client_addr;
     int addrlen = sizeof(struct sockaddr_in);
 
@@ -111,6 +111,7 @@ void recv_requests(int sfd) { /* An iterative server */
     }
 }
 
+/*socket creation, bind and listen/*/
 int openSocket(struct sockaddr_in *server_addr) {
     int fd;
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -121,7 +122,7 @@ int openSocket(struct sockaddr_in *server_addr) {
     if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
         perror("Error setting socket options");
     }
-     if(setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0) {
+    if(setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0) {
         perror("Error setting socket options");
     }
 
@@ -141,7 +142,7 @@ int openSocket(struct sockaddr_in *server_addr) {
 }
 
 
-
+/*function to assure the send of all needed bytes*/
 ssize_t writen(int fd, const void *vptr, size_t n) {
     size_t nleft;
     ssize_t nwritten;

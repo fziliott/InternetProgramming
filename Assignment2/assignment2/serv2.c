@@ -14,10 +14,10 @@
 #define BACKLOG 5
 #define PORT 4444
 
-int id;
-int *counter;
-int socketfd;
-int sem;
+int id;         //shared memory id
+int *counter;   //shared variable
+int socketfd;   //socket id
+int sem;        //semaphore to protect access to shared variable
 
 struct sembuf up =   {0, 1, 0}; //struct for the UP() operation on semaphore
 struct sembuf down = {0, -1, 0};//struct for the DOWN() operation on semaphore
@@ -35,10 +35,12 @@ int main(void) {
     int newsfd;
     struct sockaddr_in server_addr, client_addr;
 
-
-    sem = semget(IPC_PRIVATE, 1, 0600);     //semaphore
+    /*creation and initialization of the semaphore*/
+    sem = semget(IPC_PRIVATE, 1, 0600);    
     semop(sem, &up, 1);     //at the begin the semaphore must be set to 1 (open)
-    id = shmget(IPC_PRIVATE, sizeof(int), 0600 | IPC_CREAT);
+
+    /*use shared memory for the counter*/
+    id = shmget(IPC_PRIVATE, sizeof(int), 0600 | IPC_CREAT);   
     if (id < 0) {
         perror("Error shmget");
         exit(1);
@@ -50,6 +52,8 @@ int main(void) {
 
     signal(SIGCHLD, sig_chld);
     signal(SIGINT, handler);
+
+    /*accept new connections and use a child to manage them*/
     while (1) {
         int addrlen = sizeof(struct sockaddr_in);
         newsfd = accept(socketfd, (struct sockaddr *) &client_addr, &addrlen);
@@ -64,7 +68,7 @@ int main(void) {
     }
 }
 
-
+/*manage a new connection*/
 void treat_request(int socketfd, int sem, int *counter) {
     semop(sem, &down, 0);
     (*counter)++;
@@ -77,7 +81,7 @@ void treat_request(int socketfd, int sem, int *counter) {
     close(socketfd);
 }
 
-
+/*socket creation, bind and listen/*/
 int openSocket(struct sockaddr_in *server_addr) {
     int socketfd;
     if ((socketfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -108,7 +112,7 @@ int openSocket(struct sockaddr_in *server_addr) {
 }
 
 
-
+/*function to assure the send of all needed bytes*/
 ssize_t writen(int fd, const void *vptr, size_t n) {
     size_t nleft;
     ssize_t nwritten;
@@ -134,6 +138,7 @@ void sig_chld(int a) {
     signal(SIGCHLD, sig_chld);
 }
 
+/*finalization function, for a safe closure*/
 void handler(){
     shmdt((void*)counter);
     shmctl(id, IPC_RMID, 0);

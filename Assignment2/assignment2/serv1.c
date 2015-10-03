@@ -6,13 +6,22 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <signal.h>
 
 
 #define BACKLOG 5
 #define PORT 4444
 
 int counter=0;
+int sfd;
 
+/*finalization function, for a safe closure*/
+void handler(){
+    close(sfd);
+    exit(0);
+}
+
+/*function to assure the send of all needed bytes*/
 ssize_t writen(int fd, const void *vptr, size_t n) {
     size_t nleft;
     ssize_t nwritten;
@@ -32,6 +41,7 @@ ssize_t writen(int fd, const void *vptr, size_t n) {
     return n;
 }
 
+/*manage a new connection*/
 void treat_request(int socket) {
     counter++;
     uint32_t msg=htonl(counter);
@@ -43,13 +53,14 @@ void treat_request(int socket) {
 
 
 int main(void) {
-    int sfd, newsfd;
+    int newsfd;
     struct sockaddr_in server_addr, client_addr;
 
     if ((sfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("socket");
         exit(1);
     }
+    signal(SIGINT, handler);
     int enable = 1;
     if(setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
         perror("Error setting socket options");
@@ -57,9 +68,6 @@ int main(void) {
      if(setsockopt(sfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0) {
         perror("Error setting socket options");
     }
-
-    //memset(&server_addr, 0, sizeof(struct sockaddr_in));
-    //memset(&client_addr, 0, sizeof(struct sockaddr_in));
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(PORT);

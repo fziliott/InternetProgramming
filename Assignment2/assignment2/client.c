@@ -7,10 +7,18 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <signal.h>
 
 #define MSG_SIZE 4
 #define PORT 4444
 
+int socketfd;
+
+/*finalization function, for a safe closure*/
+void handler(){
+    close(socketfd);
+    exit(0);
+}
 
 int main(int argc, char **argv) {
     struct hostent *host;
@@ -18,13 +26,13 @@ int main(int argc, char **argv) {
         printf("Couldn't get server name!\n");
         exit(1);
     }
-    int socketfd;
     struct sockaddr_in remote;
 
     if ((socketfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("socket");
         exit(1);
     }
+    signal(SIGINT, handler);
 
     host = gethostbyname(argv[1]);
     if (host == NULL) {
