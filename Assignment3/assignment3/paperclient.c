@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
     CLIENT *cl;
     article_request ar;
     retrieved_article *ra;
-    int * id;
+    int *id;
     sent_article sa;
     char arguments[1024];
     char *cvalue;
@@ -28,11 +28,11 @@ int main(int argc, char **argv) {
         case 'h':
             break;
         case 'a':
-        bzero(sa.data, MAXLEN);
+            bzero(sa.data, MAXLEN);
             printf("index  %s\n", argv[optind]);
 
             strcpy(sa.author, argv[optind - 1]);
-printf("%s\n",argv[optind] );
+            printf("%s\n", argv[optind] );
             strcpy(sa.name, argv[optind]);
             printf("name %s, author:%s nomefile:%s\n", sa.name, sa.author, argv[optind + 1]);
 
@@ -44,10 +44,17 @@ printf("%s\n",argv[optind] );
             }
 
             int n = fread(sa.data, 1, MAXLEN2, file);
-            sa.data[n]=EOF;
-            printf("data: %s", sa.data);
+            sa.size=n;
+            //sa.data[n] = EOF; //why?
+
+
+
+
+            printf("data: %s, length: %d", sa.data, n);
             id = sendarticle_1(&sa, cl);
-            if(id!=NULL){printf("%d\n", *id); }
+            if(id != NULL) {
+                printf("%d\n", *id);
+            }
             break;
         case 'f':
             cvalue = optarg;

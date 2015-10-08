@@ -26,6 +26,7 @@ struct sent_article {
     filename name;
     authorname author;
     article data;
+    int size;
 };
 
 struct article_list {

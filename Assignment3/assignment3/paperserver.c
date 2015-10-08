@@ -99,20 +99,20 @@ int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
         //get dimension of stream
         int c = 0;
         long nPos = 0;
-        while(nPos <= MAXLEN) {
+        /*while(nPos <= MAXLEN2) {
             c = (int)sa->data[nPos];
             if(c == -1) {
                 break;
             }
             nPos++;
-        }
+        }*/
         //write stream until EOF
-        fwrite(sa->data, 1, nPos, newArticle);
+        fwrite(sa->data, 1, sa->size, newArticle);
         //printf("data: %s\n", sa->data);
         //fputs(sa->data, newArticle);
         //printf("found:%d\n", found);
         fclose(newArticle);
-
+        /*what about if we receive 2 files with same name but different author??*/
         //update information
         if(!found) {
             printf("not found\n");
