@@ -1,10 +1,18 @@
 #include "storage.h"
 #include  <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 
 #define MAXLENGTH 1024
 
 
 
+char *articlesFile = "articles/articles.txt";
+
+
+/* retrieve article info*/
 article_info *getArticleInfo(int id) {
     static article_info ai;
     bzero(ai.name, MAXLEN);
@@ -16,19 +24,17 @@ article_info *getArticleInfo(int id) {
     char *token = NULL;
     int artID;
     int found = 0;
-    file = fopen("articles/articles.txt", "rb");
+    file = fopen(articlesFile, "rb");
     if (file == NULL) {
         return NULL;
     } else {
         ai.id = id;
+        /*search article on articles list, retrieve author and name*/
         while ((read = getline(&line, &len, file)) != -1 && !found) {
-            printf("Retrieved line of length %zu :\n", read);
-            printf("%s", line);
             if((token = strtok(line, "\t\n"))  == NULL) {
                 return NULL;
             }
             artID = atoi(token);
-            printf("%d,%d\n", artID, id);
             if(id == artID) {
                 found = 1;
                 if((token = strtok(NULL, "\t\n"))  == NULL) {
@@ -46,6 +52,7 @@ article_info *getArticleInfo(int id) {
     return &ai;
 }
 
+/*list all stored articles*/
 article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
     static article_list *articleList;
     article_list *head = NULL;
@@ -58,11 +65,12 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
 
     bzero(&articleList, sizeof(article_list));
 
-    file = fopen("articles/articles.txt", "rb");
+    file = fopen(articlesFile, "rb");
     if (file == NULL) {
         return NULL;
     }
     int first = 1;
+    /*parse articles file and create a list of article_info elements*/
     while ((read = getline(&line, &len, file)) != -1 ) {
         if(first) {
             articleList = malloc(sizeof(article_list));
@@ -81,7 +89,6 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
             return NULL;
         }
         strcpy(ai->author, token);
-        printf("author:%s", token);
         if((token = strtok(NULL, "\t\n"))  == NULL) {
             return NULL;
         }
@@ -94,10 +101,13 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
     return articleList;
 }
 
+/*retrieve article info*/
 article_info *retrievearticleinfo_1_svc(article_request *ar, struct svc_req *cl) {
     return getArticleInfo(ar->articleID);
 }
 
+
+/*remove article given an article id*/
 int *removearticle_1_svc(article_request *ar, struct svc_req *cl) {
     static int res = 0;
     char *line = NULL;
@@ -112,49 +122,51 @@ int *removearticle_1_svc(article_request *ar, struct svc_req *cl) {
     char fileName[MAXLENGTH];
     bzero(fileName, MAXLENGTH);
 
-    strcpy(fileName, "./articles/");
+    strcpy(fileName, "articles/");
+    strcat(fileName, ai->author);
+    strcat(fileName, "/");
     strcat(fileName, ai->name);
 
     int status = remove(fileName);
 
-    if( status == 0 ) {
+    if( status == 0 ) {	//if the article was correctly removed
         FILE *tmp = fopen("articles/tmp.txt", "w+");
         if (tmp == NULL) {
             return NULL;
         }
-        FILE *file = fopen("articles/articles.txt", "rb");
+        FILE *file = fopen(articlesFile, "rb");
         if (file == NULL) {
             return NULL;
         }
 
+        /*search the article entry on articles list and discard it*/
         while ((read = getline(&line, &len, file)) != -1 ) {
             strcpy(buffer, line);
-            printf("%s\n", buffer);
 
             if((token = strtok(line, "\t\n"))  == NULL) {
                 return NULL;
             }
             if(ar->articleID != atoi(token)) {
-                printf("writing\n");
-                //fputs(buffer, tmp);
                 fwrite(buffer, 1, strlen(buffer), tmp);
             }
         }
-        printf("renaming\n");
         fclose(file);
         fclose(tmp);
-        remove("articles/articles.txt");
-        rename("articles/tmp.txt", "articles/articles.txt");
+        remove(articlesFile);
+        rename("articles/tmp.txt", articlesFile);
+
+
 
     } else {
         printf("Unable to delete the file\n");
         perror("Error");
         res = -1;
     }
-    printf("res:%d\n",  res);
     return &res;
 }
 
+
+/*send a new article*/
 int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
     FILE *file;
     ssize_t read;
@@ -168,11 +180,11 @@ int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
     char buffer[MAXLENGTH];
 
 
-    file = fopen("articles/articles.txt", "rb");
+    file = fopen(articlesFile, "rb");
     if (file == NULL) {
         return -1;
     } else {
-        printf("autor to search:%s file:\n", sa->author, sa->name );
+        /*search if the tuple (author,file) already exists*/
         while ((read = getline(&line, &len, file)) != -1 && !found) {
             empty = 0;
             if((token = strtok(line, "\t\n"))  == NULL) {
@@ -182,7 +194,6 @@ int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
             if((token = strtok(NULL, "\t\n"))  == NULL) {
                 return -1;
             }
-            printf("%s\n", token);
             if(strcmp(token, sa->author) == 0) {
 
                 if((token = strtok(NULL, "\t\n"))  == NULL) {
@@ -196,87 +207,64 @@ int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
         fclose(file);
         bzero(filename, MAXLENGTH);
         strcpy(filename, "articles/");
+        strcat(filename, sa->author);
+
+        /*create the author folded if it doesn't already exists*/
+        struct stat st = {0};
+        if (stat(filename, &st) == -1) {
+            mkdir(filename, 0700);
+        }
+
+        strcat(filename, "/");
         strcat(filename, sa->name);
-        printf("\nname:%s\n", filename );
+
+        /*update an existing article or create a new article*/
         FILE *newArticle = fopen(filename, "w+");
-        printf("opened\n");
-        // fseek(newArticle, 0, SEEK_END);
-        // int lSize = ftell(newArticle);
-        // printf("size: %d\n", lSize);
-        // fseek(newArticle, 0, SEEK_SET);
-
-
-        //get dimension of stream
-        int c = 0;
-        long nPos = 0;
-        /*while(nPos <= MAXLEN2) {
-            c = (int)sa->data[nPos];
-            if(c == -1) {
-                break;
-            }
-            nPos++;
-        }*/
-        //write stream until EOF
-
         fwrite(sa->data, 1, sa->size, newArticle);
-        //printf("data: %s\n", sa->data);
-        //fputs(sa->data, newArticle);
-        //printf("found:%d\n", found);
         fclose(newArticle);
-        /*what about if we receive 2 files with same name but different author??*/
-        //update information
-        if(!found) {
 
+        /*if the article doesn't exists, add it into the file containing the list of all articles*/
+        if(!found) {
             if(empty == 1) {
                 sprintf(buffer, "%d\t%s\t%s", artID, sa->author, sa->name);
             } else {
                 artID++; //new id
                 sprintf(buffer, "\n%d\t%s\t%s", artID, sa->author, sa->name);
             }
-            file = fopen("./articles/articles.txt", "a");
+            file = fopen(articlesFile, "a");
             int num = fwrite(buffer, 1, strlen(buffer), file);
-            printf("num: %d\n", num );
             fclose(file);
         }
     }
     return &artID;
 }
 
+/*retrieve article from ID*/
 retrieved_article *retrievearticle_1_svc(article_request *request, struct svc_req *rqstp) {
     static retrieved_article ra;
-    //bzero(ra.data, FILELEN);
     article_info *ai;
 
-    printf("Article: %d\n", request->articleID);
     FILE *file;
     char fileName[MAXLENGTH];
     char *dir = "articles/";
     char data[FILELEN];
     ai = getArticleInfo(request->articleID);
 
-    if(ai != NULL) {
-        printf("found");
+    if(ai != NULL) {	//if the article was find
         strcpy(fileName, dir);
-        printf("filename: \n%s -> len %d\n", fileName, strlen(fileName));
+        strcat(fileName, ai->author);
+        strcat(fileName, "/");
         strcat(fileName, ai->name);
-        printf("filename: \n%s -> len %d\n", fileName, strlen(fileName));
         file = fopen(fileName, "rb");
         if (file == NULL) {
-            printf("NULL");
             return NULL;
         }
-        printf("A");
         fseek(file, 0, SEEK_END);
         int size = ftell(file);
         rewind(file);
-        ra.data=malloc(sizeof(char)*size);
-        int n = fread(ra.data, 1, sizeof(char)*size, file);
+        ra.data = malloc(sizeof(char) * size);
+        int n = fread(ra.data, 1, sizeof(char) * size, file);
         ra.size = n;
-        printf("n: %d\n", n);
-        //fwrite(ra.data,FILELEN,1,stdout);
-        //printf("data: %d", strlen(ra.data));
-        //ra.data=malloc(sizeof(FILELEN));
-        //ra.data=data;
         fclose(file);
         return(&ra);
     }

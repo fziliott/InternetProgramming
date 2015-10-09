@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
     while ((c = getopt (argc, argv, "ha:f:i:r:l")) != -1) switch (c) {
         case
-                'h':
+                'h':  
             printf("List of available commands:\n");
             printf("\t-h see help manual\n\n");
             printf("\t-l list of all the papers with 'author' and 'filename'\n\n");
@@ -35,32 +35,19 @@ int main(int argc, char **argv) {
             printf("\t-r <id>: removes the article with code <id> from the collection.\n\n");
             break;
 
-        case 'a':
-            //bzero(sa.data, MAXLEN);
-            printf("index  %s\n", argv[optind]);
-
+        case 'a': 
             strcpy(sa.author, argv[optind - 1]);
-            printf("%s\n", argv[optind] );
             strcpy(sa.name, argv[optind]);
-            printf("name %s, author:%s nomefile:%s\n", sa.name, sa.author, argv[optind + 1]);
-
-
-
             file = fopen(argv[optind + 1], "rb");
             if (file == NULL) {
                 return -1;
             }
             fseek(file, 0, SEEK_END);
             int size = ftell(file);
-            printf("prima di rewind\n");
             rewind(file);
-            printf("prima di malloc\n");
             sa.data = malloc(sizeof(char) * size);
-            printf("prima di read\n");
             int n = fread(sa.data, 1, sizeof(char) * size, file);
             sa.size = n;
-
-            printf("data: %s, length: %d", sa.data, n);
             id = sendarticle_1(&sa, cl);
             if(id != NULL && *id != -1) {
                 printf("%d\n", *id);
@@ -85,7 +72,6 @@ int main(int argc, char **argv) {
             ar.articleID = atoi(cvalue);
             ai = retrievearticleinfo_1(&ar, cl);
             if(ai != NULL) {
-
                 printf("%s\t%s\n", ai->author, ai->name);
             } else {
                 printf("Can't retrieve article info\n");
