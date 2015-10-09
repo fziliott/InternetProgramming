@@ -1,9 +1,10 @@
 CC = gcc
-CFLAGS =  -g
+CFLAGS =  -g -Wall -Wextra
 LDFLAGS = 
 SOURCES_C = paperserver.c paperclient.c
 SOURCES_JAVA = ./client/HotelClient.java ./server/HotelServer.java
 EXEC = paperserver paperclient
+
 
 build: $(EXEC) 
 
