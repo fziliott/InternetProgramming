@@ -9,9 +9,10 @@ public class HotelImpl extends java.rmi.server.UnicastRemoteObject implements Ho
     Rooms[] rooms = {type1, type2, type3};
 
     public HotelImpl() throws java.rmi.RemoteException {
-
+        super();
     }
-    public synchronized String listGuests() throws java.rmi.RemoteException {
+
+    public String listGuests() throws java.rmi.RemoteException {
         String list = "";
         for(String s : guests) {
             list = list + s + "\n";
@@ -19,12 +20,12 @@ public class HotelImpl extends java.rmi.server.UnicastRemoteObject implements Ho
         return list;
     }
 
-    public synchronized String listRooms() throws java.rmi.RemoteException {
+    public String listRooms() throws java.rmi.RemoteException {
         return type1.available + "\t" + type2.available + "\t" + type3.available;
     }
     public synchronized boolean book(int type, String gname) {
         if(type>0 && type <= 3 ) {
-            if( rooms[type-1].book()) {
+            if(rooms[type-1].book()) {
                 guests.add(gname);
                 return true;
             }
@@ -40,7 +41,6 @@ class Rooms {
     }
     int price;
     int available;
-
 
     boolean book() {
         if(available > 0) {

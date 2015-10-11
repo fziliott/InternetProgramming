@@ -10,16 +10,18 @@ public class HotelClient {
             int c;
             String arg;
 
-            Getopt g = new Getopt("HotelClient", args, "hlb::g");
             Hotel hotelServer = (Hotel) Naming.lookup("rmi://" + args[0] + "/Hotel");
+            
+            Getopt g = new Getopt("HotelClient", args, "hlb::g");
 
             while ((c = g.getopt()) != -1) {
                 switch(c) {
                 case 'h':
                     arg = g.getOptarg();
                     System.out.println("List of available commands:");
-                    System.out.println("\t-l: list available rooms");
                     System.out.println("\t-b <t> \"guestname\": books a room to type 't' for guest 'gname'");
+                    System.out.println("\t-g: lists all the guests of the hotel\n");
+                    System.out.println("\t-l: list available rooms");
                     break;
 
                 case 'l':
@@ -27,14 +29,15 @@ public class HotelClient {
                     System.out.println(hotelServer.listRooms());
                     break;
                 case 'b':
-                    if( g.getOptind() + 1 <= args.length) {
-                        int type = 34;
+                    if(g.getOptind() + 1 <= args.length) {
+                        int type = 42;
                         try {
                             type = Integer.parseInt(args[g.getOptind()]);
 
-                        } catch(NumberFormatException e) {}
+                        } catch(NumberFormatException e) {
+                            System.out.println(e);
+                        }
                         String name = args[g.getOptind() + 1];
-
 
                         if(hotelServer.book(type, name)) {
                             System.out.println("ok");
@@ -47,13 +50,12 @@ public class HotelClient {
 
                     break;
                 case 'g':
-                    System.out.println(hotelServer.listGuests());
+                    System.out.print(hotelServer.listGuests());
                     break;
                 default:
-                    System.out.print("getopt() returned " + c + "\n");
+                    System.out.print("Error parsing arguments, see the help with -h\n");
                 }
             }
-
 
             // Let's now try to divide by zero!
             // The server will continue to work.

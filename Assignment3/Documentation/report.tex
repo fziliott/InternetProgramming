@@ -35,4 +35,43 @@
 %%%***************************************%%
 \section{Report}
 
+\section{Paperserver}
+The server stores all the documents in the folder ``./articles''. The list of all the documents stored is contained in the file ``./articles/articles.txt''. Two authors may have articles with the same name, to avoid conflicts the server stores the articles in subfolders named with the author's names.
+The data structures we use for exchanging data between client and server are the following:
+\begin{itemize}
+\item article\_request: this contains the article id;
+\item article\_info: contains the information about one article (id, name, author);
+\item article\_list: a linked list of article\_info;
+\item sent\_article: this structure contains the data of an article that is sent through the network. We send also the size of the article so that we know how many bytes we need to read and how much space to allocate;
+\item retrieved\_article: this contains the data (and its size) of an article that is retrieve from the server.
+\end{itemize}
+
+
+The server has the following RPC functions:
+\begin{itemize}
+\item \texttt{listarticle\_1\_svc}: the server parses the file "article.txt" and create for each article found an article\_info structure. These are linked together to create a list of article\_list items that are sent back to the client.
+\item \texttt{retrievearticleinfo\_1\_svc}: the file ``articles.txt'' is parsed until the id specified in the article\_request is found. If found, the correct information (author name and filename) is sent to the client, if not, \texttt{NULL} is returned.
+\item \texttt{removearticle\_1\_svc}: first, the id is searched in the ``articles.txt'' file. If there is an entry, its corresponding file is deleted and the entry is removed from the ``articles.txt'' file. If not, -1 is returned, meaning that something went wrong during the deletion.
+\item \texttt{sendarticle\_1\_svc}: the server receives the author name, the name of the file and its contents. If the combination (author, filename) is already present, the old file is updated with the new one. Otherwise, a new entry is created (with a new id) and the file is stored (if the author is not already present, a new folder for that author is created).
+\item \texttt{retrievearticle\_1\_svc}: the server searches the entry with the id indicated by the client. If found, the corresponding file is loaded and sent to the client.
+\end{itemize}
+
+
+\section{Paperclient}
+The client parses the command line arguments and call the correct function of the server through RPC after creating the connection. If the arguments are not in the correct format, an error message is prompted. The options are the following:
+\begin{itemize}
+	\item -a: to send a new article. The file is searched in the same directory where the client starts and the size is calculated and sent as an additional parameter to the server.
+	\item -f: retrieves the data of an article (selected by id) and prints all the data fetched from the server on the standard output.
+	\item -h: shows the help manual.
+	\item -i: ask the server the information related to paper id and, if available, prints them to the standard output.
+	\item -l: retrieves the list of article\_info and print each entry to the screen.
+	\item -r: ask the server to remove an entry and prints the result of the operation.
+\end{itemize}
+
+\section{HotelServer}
+
+\section{HotelClient}
+
+\section{HotelGateway}
+
 \end{document}
