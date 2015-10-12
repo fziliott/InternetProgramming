@@ -34,8 +34,8 @@
 % \end{figure}
 %%%***************************************%%
 \section{Report}
-
-\section{Paperserver}
+\subsection{A Paper Storage Server}
+\subsubsection{Paperserver}
 The server stores all the documents in the folder ``./articles''. The list of all the documents stored is contained in the file ``./articles/articles.txt''. Two authors may have articles with the same name, to avoid conflicts the server stores the articles in subfolders named with the author's names.
 The data structures we use for exchanging data between client and server are the following:
 \begin{itemize}
@@ -43,24 +43,24 @@ The data structures we use for exchanging data between client and server are the
 \item article\_info: contains the information about one article (id, name, author);
 \item article\_list: a linked list of article\_info;
 \item sent\_article: this structure contains the data of an article that is sent through the network. We send also the size of the article so that we know how many bytes we need to read and how much space to allocate;
-\item retrieved\_article: this contains the data (and its size) of an article that is retrieve from the server.
+\item retrieved\_article: this contains the data (and its size) of an article that is retrieve from the server. The size of the article is useful for the same reason of the previous structure.
 \end{itemize}
 
 
 The server has the following RPC functions:
 \begin{itemize}
-\item \texttt{listarticle\_1\_svc}: the server parses the file "article.txt" and create for each article found an article\_info structure. These are linked together to create a list of article\_list items that are sent back to the client.
+\item \texttt{listarticle\_1\_svc}: the server parses the file "article.txt" and creates for each article found an article\_info structure. These are linked together to create a list of article\_list items that are sent back to the client.
 \item \texttt{retrievearticleinfo\_1\_svc}: the file ``articles.txt'' is parsed until the id specified in the article\_request is found. If found, the correct information (author name and filename) is sent to the client, if not, \texttt{NULL} is returned.
 \item \texttt{removearticle\_1\_svc}: first, the id is searched in the ``articles.txt'' file. If there is an entry, its corresponding file is deleted and the entry is removed from the ``articles.txt'' file. If not, -1 is returned, meaning that something went wrong during the deletion.
 \item \texttt{sendarticle\_1\_svc}: the server receives the author name, the name of the file and its contents. If the combination (author, filename) is already present, the old file is updated with the new one. Otherwise, a new entry is created (with a new id) and the file is stored (if the author is not already present, a new folder for that author is created).
-\item \texttt{retrievearticle\_1\_svc}: the server searches the entry with the id indicated by the client. If found, the corresponding file is loaded and sent to the client.
+\item \texttt{retrievearticle\_1\_svc}: the server searches the entry with the id indicated by the client. If found, the corresponding file is loaded and sent to the client. Otherwise, \texttt{NULL} is returned.
 \end{itemize}
 
 
-\section{Paperclient}
+\subsubsection{Paperclient}
 The client parses the command line arguments and call the correct function of the server through RPC after creating the connection. If the arguments are not in the correct format, an error message is prompted. The options are the following:
 \begin{itemize}
-	\item -a: to send a new article. The file is searched in the same directory where the client starts and the size is calculated and sent as an additional parameter to the server.
+	\item -a: to send a new article. The file is searched in the same directory where the client starts, the size is calculated and sent as an additional parameter to the server.
 	\item -f: retrieves the data of an article (selected by id) and prints all the data fetched from the server on the standard output.
 	\item -h: shows the help manual.
 	\item -i: ask the server the information related to paper id and, if available, prints them to the standard output.
@@ -68,10 +68,41 @@ The client parses the command line arguments and call the correct function of th
 	\item -r: ask the server to remove an entry and prints the result of the operation.
 \end{itemize}
 
-\section{HotelServer}
+\subsection{An Hotel Reservation Server}
 
-\section{HotelClient}
+\subsubsection{Hotel}
+This is the interface for the remote object and it presents the sign of the three methods: \texttt{book}, \texttt{listRooms} and \texttt{listGuests}.
 
-\section{HotelGateway}
+\subsubsection{HotelImpl}
+This is the implementation of the remote object. This class extends \textbf{java.rmi.server.UnicastRemoteObject} and defines a class named \texttt{Rooms} that represents all rooms of a certain type. It contains two fields: the price and the numbers of rooms of that type that are available. HotelImpl contains also the implementation of the three methods defined in the interface:
+\begin{itemize}
+	\item listRooms: return the availability for each type of room;
+	\item listGuests: return a string containing all the hotel guests;
+	\item book: if there is a free room of the selected type, it decreases its availability and it adds the person in the list of the hotel guests. To avoid the possibility that two people try to book a room simultaneusly, this method is protected (\texttt{synchronized}).
+\end{itemize}
+
+\subsubsection{HotelServer}
+This class represents the server and the only thing that it do is to create an \texttt{HotelImpl} object and bind it into the \texttt{rmi registry} to the address 'host/Hotel'.
+
+\subsubsection{HotelClient}
+This class represents the client. As first thing asks to the \texttt{rmi registry} to have access to the \texttt{Hotel Remote Object}. After that, it parses the command line arguments and invokes the correct method of the remote object. If the arguments are not in the correct format, an error message is prompted. The options are the following:
+\begin{itemize}
+	\item -b: to book a room. A room type and a name must also be provided.
+	\item -h: shows the help manual.
+	\item -l: retrieves the availability for the three types of rooms.
+	\item -g: retrieves the list of the hotel guests.
+\end{itemize}
+
+\subsection{A Hotel Reservation Gateway}
+This program allows making rooms reservation through regular sockets. As first thing, it asks to the \texttt{rmi registry} to have access to the \texttt{Hotel} remote object. After instantiate a  \texttt{ServerSocket} to receive connections, for each incoming request it generates a new \texttt{Socket} and assigns the management of the communication to a new thread. The new thread parses the input stream of the received socket and invokes the correct method in the remote object (b,h,l,g).
+
+\section{Answers to the Questions}
+Q-A: To transfert any number of paper data structures (\texttt{struct article\_info}) from the server to the client we used a new structure, \texttt{struct article\_list}, that is a list of paper data structures. Proceeding in this way, the client can accesses the first paper data structure, print relative information and access the following paper info through the \texttt{next} field.
+
+Q-B: 
+
+Q-C: To implement the HotelGateway we used an 'One thread per request' approach. We didn't use synchronization primitives to guarantee correctness because this is already guarantee on the \texttt{Hotel} implementation (the \texttt{book} method is \texttt{synchronized}).
+
+Q-D:
 
 \end{document}
