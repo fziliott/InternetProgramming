@@ -2,7 +2,7 @@
 build: all
 
 all:
-		javac Hotel.java
+		javac HotelInterface.java
 		javac HotelImpl.java
 		javac HotelServer.java
 		javac HotelClient.java

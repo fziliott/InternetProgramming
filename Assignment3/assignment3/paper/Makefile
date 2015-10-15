@@ -11,28 +11,28 @@ jrun: java run
 
 all: clean build 
 
-paperclient: paperclient.o storage_clnt.o storage_xdr.o 
-	$(CC) -o paperclient paperclient.o storage_clnt.o storage_xdr.o -lnsl  
+paperclient: paperclient.o paperserver_clnt.o paperserver_xdr.o 
+	$(CC) -o paperclient paperclient.o paperserver_clnt.o paperserver_xdr.o -lnsl  
 
-paperserver: paperserver.o add_svc.o add_xdr.o
-	$(CC) -o paperserver paperserver.o storage_svc.o storage_xdr.o -lnsl 
+paperserver: paperserver.o paperserver_svc.o paperserver_xdr.o
+	$(CC) -o paperserver paperserver.o paperserver_svc.o paperserver_xdr.o -lnsl 
 
-add_clnt.c storage.h storage_xdr.c storage_svc.c: storage.x
-	rpcgen storage.x
+add_clnt.c paperserver.h paperserver_xdr.c paperserver_svc.c: paperserver.x
+	rpcgen paperserver.x
 
-paperclient.o: paperclient.c storage.h
+paperclient.o: paperclient.c paperserver.h
 	$(CC) $(CFLAGS) -c -o paperclient.o paperclient.c
 
-add_clnt.o: storage_clnt.c storage.h
-	$(CC) $(CFLAGS) -c -o storage_clnt.o storage_clnt.c
+paperserver_clnt.o: paperserver_clnt.c paperserver.h
+	$(CC) $(CFLAGS) -c -o paperserver_clnt.o paperserver_clnt.c
 
-add_xdr.o: storage_xdr.c storage.h
-	$(CC) $(CFLAGS) -c -o storage_xdr.o storage_xdr.c
+paperserver_xdr.o: paperserver_xdr.c paperserver.h
+	$(CC) $(CFLAGS) -c -o paperserver_xdr.o paperserver_xdr.c
 
-add_svc.o: storage_svc.c storage.h
-	$(CC) $(CFLAGS) -c -o storage_svc.o storage_svc.c
+paperserver_svc.o: paperserver_svc.c paperserver.h
+	$(CC) $(CFLAGS) -c -o paperserver_svc.o paperserver_svc.c
 
-paperserver.o: paperserver.c storage.h
+paperserver.o: paperserver.c paperserver.h
 	$(CC) $(CFLAGS) -c -o paperserver.o paperserver.c
 
 clean:

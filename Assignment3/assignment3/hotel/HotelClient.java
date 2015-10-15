@@ -10,7 +10,7 @@ public class HotelClient {
             int c;
             String arg;
 
-            Hotel hotelServer = (Hotel) Naming.lookup("rmi://" + args[0] + "/Hotel");
+            HotelInterface hotelServer = (HotelInterface) Naming.lookup("rmi://" + args[0] + "/Hotel");
             
             Getopt g = new Getopt("HotelClient", args, "hlb::g");
 

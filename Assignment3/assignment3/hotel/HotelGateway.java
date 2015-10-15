@@ -88,7 +88,7 @@ class ClientHandler implements Runnable {
 }
 
 public class HotelGateway {
-    public static Hotel hotelServer = null;
+    public static HotelInterface hotelServer = null;
     static ServerSocket hotelSocket = null;
 
     public static void main(String args[]) throws Exception {
@@ -98,7 +98,7 @@ public class HotelGateway {
         if(args.length > 0) {
             InetAddress addr = InetAddress.getByName(args[0]);
             hotelSocket = new ServerSocket(3333, 5, addr);
-            hotelServer = (Hotel) Naming.lookup("rmi://" + args[0] + "/Hotel");
+            hotelServer = (HotelInterface) Naming.lookup("rmi://" + args[0] + "/Hotel");
 
             while(true) {
                 Socket clientSocket = hotelSocket.accept();

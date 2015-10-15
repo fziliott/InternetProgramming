@@ -1,7 +1,7 @@
 import java.lang.String;
 import java.util.ArrayList;
 
-public class HotelImpl extends java.rmi.server.UnicastRemoteObject implements Hotel {
+public class HotelImpl extends java.rmi.server.UnicastRemoteObject implements HotelInterface {
     ArrayList<String> guests = new ArrayList<String>();
     Rooms type1 = new Rooms (150, 10);
     Rooms type2 = new Rooms(120, 20);
