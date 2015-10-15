@@ -8,3 +8,5 @@ all:
 		javac HotelClient.java
 		javac HotelGateway.java
 
+clean:
+		rm -rf *.class

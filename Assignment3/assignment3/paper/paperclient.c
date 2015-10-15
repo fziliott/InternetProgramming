@@ -12,20 +12,24 @@ int main(int argc, char **argv) {
     article_list *al;
     article_info *ai;
     int *id;
-    sent_article sa;
     char *cvalue;
     FILE *file;
     int c;
-
+    int start_pos = 0;
+    int num_read = 0;
+    int remaining;
+    if(argc < 2) {
+        return -1;
+    }
     cl = clnt_create(argv[1], ARTICLE_PROG, ARTICLE_VER, "tcp");
     if (cl == NULL) {
         perror("Error creating RPC client!");
         return 1;
     }
 
-    while ((c = getopt (argc, argv, "ha:f:i:r:l")) != -1) switch (c) {
-        case
-                'h':  
+    while ((c = getopt (argc, argv, "ha:f:i:r:l")) != -1) {
+        switch (c) {
+        case 'h':
             printf("List of available commands:\n");
             printf("\t-h see help manual\n\n");
             printf("\t-l list of all the papers with 'author' and 'filename'\n\n");
@@ -35,9 +39,12 @@ int main(int argc, char **argv) {
             printf("\t-r <id>: removes the article with code <id> from the collection.\n\n");
             break;
 
-        case 'a': 
-            strcpy(sa.author, argv[optind - 1]);
-            strcpy(sa.name, argv[optind]);
+        case 'a':
+
+
+            //sa = malloc(sizeof(struct sent_article));
+            //strcpy(sa->author, argv[optind - 1]);
+            //strcpy(sa->name, argv[optind]);
             file = fopen(argv[optind + 1], "rb");
             if (file == NULL) {
                 return -1;
@@ -45,10 +52,35 @@ int main(int argc, char **argv) {
             fseek(file, 0, SEEK_END);
             int size = ftell(file);
             rewind(file);
-            sa.data = malloc(sizeof(char) * size);
-            int n = fread(sa.data, 1, sizeof(char) * size, file);
-            sa.size = n;
-            id = sendarticle_1(&sa, cl);
+
+            remaining = size;
+            while(remaining > 0 ) {
+                static sent_article sa;
+                sa.start = start_pos;
+                sa.finish = 0;
+                strcpy(sa.author, argv[optind - 1]);
+                strcpy(sa.name, argv[optind]);
+                //sa.data = malloc(sizeof(article));
+
+
+                bzero(sa.data, sizeof(article));
+                //                 fseek(file, 0L, SEEK_END);
+                // int k = ftell(file);
+                // fseek(file, 0L, SEEK_SET);
+
+                num_read = fread(sa.data, 1, sizeof(article), file);
+
+                //printf("read %d\n", num_read);
+                sa.size = num_read;
+                remaining = remaining - num_read;
+                start_pos = start_pos + num_read;
+                //printf("remaining : %d\n", remaining );
+                if(remaining == 0)
+                    sa.finish = 1;
+                id = sendarticle_1(&sa, cl);
+            }
+
+
             if(id != NULL && *id != -1) {
                 printf("%d\n", *id);
             } else {
@@ -58,13 +90,25 @@ int main(int argc, char **argv) {
 
         case 'f':
             cvalue = optarg;
+            int read = 0;
+
             ar.articleID = atoi(cvalue);
+            //strcpy(ar.host, argv[1]);
+            ar.start = 0;
+            //FILE* ff=fopen("cc", "w+");
             ra = retrievearticle_1(&ar, cl);
-            if(ra == NULL) {
+            int total_size = ra->total_size;
+            while(read < total_size) {
+                int n = fwrite(ra->data, sizeof(char), ra->size, stdout);
+                read = read + n;
+                ar.start = read ;
+                ra =  retrievearticle_1(&ar, cl);
+            }
+            /*if(ra == NULL) {
                 printf("Can't find the article %d\n", ar.articleID);
             } else {
                 fwrite(ra->data, ra->size, 1, stdout);
-            }
+            }*/
             break;
 
         case 'i':
@@ -99,9 +143,7 @@ int main(int argc, char **argv) {
                 al = al->next;
             }
             break;
-
-        default:
-            abort ();
         }
+    }
     return 0;
 }

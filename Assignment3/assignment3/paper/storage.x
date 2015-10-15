@@ -4,15 +4,17 @@ const FILELEN = 1000000;
 typedef char filename[PATH_MAX];
 typedef char authorname[MAXLEN];
 typedef char articleslist[MAXLEN];
-typedef string article<FILELEN>;
+typedef char article[FILELEN];
 
 struct article_request {
     int articleID;
+    int start;
 };
 
 struct retrieved_article {
     article data;
     int size;
+    int total_size;
 };
 
 struct article_info {
@@ -30,10 +32,10 @@ struct sent_article {
     filename name;
     authorname author;
     article data;
+    int start;
     int size;
+    int finish;
 };
-
-
 
 program ARTICLE_PROG {
     version ARTICLE_VER {
