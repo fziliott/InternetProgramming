@@ -11,6 +11,8 @@ int main(int argc, char **argv) {
     retrieved_article *ra;
     article_list *al;
     article_info *ai;
+    sent_article* sa;
+
     int *id;
     char *cvalue;
     FILE *file;
@@ -27,6 +29,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+
     while ((c = getopt (argc, argv, "ha:f:i:r:l")) != -1) {
         switch (c) {
         case 'h':
@@ -40,8 +43,6 @@ int main(int argc, char **argv) {
             break;
 
         case 'a':
-
-
             //sa = malloc(sizeof(struct sent_article));
             //strcpy(sa->author, argv[optind - 1]);
             //strcpy(sa->name, argv[optind]);
@@ -55,29 +56,34 @@ int main(int argc, char **argv) {
 
             remaining = size;
             while(remaining > 0 ) {
-                static sent_article sa;
-                sa.start = start_pos;
-                sa.finish = 0;
-                strcpy(sa.author, argv[optind - 1]);
-                strcpy(sa.name, argv[optind]);
+                sa=malloc(sizeof(struct sent_article));
+                //sa->author=malloc(sizeof(authorname));
+                //sa->name=malloc(sizeof(filename));
+                //sa->data=malloc(sizeof(article));
+                sa->start = start_pos;
+                sa->finish = 0;
+                strcpy(sa->author, argv[optind - 1]);
+                strcpy(sa->name, argv[optind]);
                 //sa.data = malloc(sizeof(article));
 
 
-                bzero(sa.data, sizeof(article));
+                bzero(sa->data, sizeof(article));
                 //                 fseek(file, 0L, SEEK_END);
                 // int k = ftell(file);
                 // fseek(file, 0L, SEEK_SET);
 
-                num_read = fread(sa.data, 1, sizeof(article), file);
+                num_read = fread(sa->data, 1, sizeof(article), file);
 
                 //printf("read %d\n", num_read);
-                sa.size = num_read;
+                sa->size = num_read;
                 remaining = remaining - num_read;
                 start_pos = start_pos + num_read;
+                sa->start=start_pos;
                 //printf("remaining : %d\n", remaining );
                 if(remaining == 0)
-                    sa.finish = 1;
-                id = sendarticle_1(&sa, cl);
+                    sa->finish = 1;
+                id = sendarticle_1(sa, cl);
+                free(sa);
             }
 
 
@@ -115,7 +121,7 @@ int main(int argc, char **argv) {
             cvalue = optarg;
             ar.articleID = atoi(cvalue);
             ai = retrievearticleinfo_1(&ar, cl);
-            if(ai != NULL) {
+            if(ai != NULL && strcmp(ai->author, "") && strcmp(ai->name, "")) {
                 printf("%s\t%s\n", ai->author, ai->name);
             } else {
                 printf("Can't retrieve article info\n");
@@ -138,10 +144,14 @@ int main(int argc, char **argv) {
 
         case 'l':
             al = listarticle_1(NULL, cl);
-            while(al != NULL ) {
+            while(al != NULL && al->item != NULL ) {
                 printf( "%d\t%s\t%s\n", al->item->id, al->item->author, al->item->name);
                 al = al->next;
             }
+            break;
+
+        default:
+            abort();
             break;
         }
     }
