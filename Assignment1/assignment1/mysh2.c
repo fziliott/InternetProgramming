@@ -5,8 +5,6 @@
 #include <errno.h>
 #include <sys/types.h>
 
-#define DIR_LENGTH 255  //Standard value for ext4 file system
-
 /*this function takes an array of pointers to memory locations that were previously allocated with malloc and deallocates them by invoking free for each pointer.*/
 void deallocation(char **array, int size) {
     int i;
@@ -44,7 +42,6 @@ char **parseArguments(char *input, char *delim, int *size) {
 }
 
 int main(int argc, char *argv[], char *envp[]) {
-    char dir[DIR_LENGTH];   //current directory path
     char *input;            //string inserted by the user
     size_t size = 0;        //size of the string inserted by the user
     char **args;            //array of string, it will contains the command, the relative attributes and a NULL in the end
@@ -52,12 +49,7 @@ int main(int argc, char *argv[], char *envp[]) {
     char *token;
 
     while(1) {
-        /*gets the current directory path and print it before the $ symbol*/
-        if (getcwd(dir, sizeof(dir)) == NULL) {
-            printf("getcwd() error");
-            exit(1);
-        }
-        printf("mysh2: %s$", dir);
+        printf("$");
 
         /*gets a string from the user*/
         while(getline(&input, &size, stdin) == -1) {

@@ -9,20 +9,13 @@
 
 int main(int argc, char *argv[], char *envp[])
 {
-    char dir[DIR_LENGTH];	//current directory path  
     char *input = NULL;		//string inserted by the user
     size_t size = 0;		//size of the string inserted by the user
     char *args[2];		//array of string, the first is the command and the second NULL
 
     while(1)
     {
-	/*get the current directory path and print it before the $ symbol*/
-        if (getcwd(dir, sizeof(dir)) == NULL)
-        {
-            printf("getcwd() error");
-            exit(1);
-        }
-        printf("mysh1: %s$", dir);
+        printf("$");
 	
 	/*get a string from the user*/
         while(getline(&input, &size, stdin) == -1)

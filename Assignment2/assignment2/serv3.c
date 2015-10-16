@@ -65,7 +65,13 @@ int main(void) {
     *counter = 0;
 
     socketfd = openSocket(&server_addr);
+    
     signal(SIGINT, handler);
+    signal(SIGTERM, handler);
+    signal(SIGQUIT, handler);
+    signal(SIGKILL, handler);
+    signal(SIGHUP, handler);
+
 
     for (num = 0; num < NB_PROC; num++) {
         if (fork() == 0) {

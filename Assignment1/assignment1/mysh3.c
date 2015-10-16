@@ -6,7 +6,6 @@
 #include <sys/types.h>
 #include <signal.h>
 
-#define DIR_LENGTH 255  //Standard value for ext4 file system
 
 /*this function takes an array of pointers to memory locations that were previously allocated
 with malloc and deallocates them by invoking free for each pointer.*/
@@ -59,7 +58,6 @@ int main(int argc, char *argv[], char *envp[]) {
     int args1_size;     //number of elements in args1
     char **args2;       //array of string, it will contains the second command, the relative attributes and a NULL in the end
     int args2_size;     //number of elements in args2
-    char dir[256];      //current directory path
     int fd[2];          //pipe
     char *input;        //string inserted by the user
     size_t size = 0;    //size of the string inserted by the user
@@ -68,12 +66,7 @@ int main(int argc, char *argv[], char *envp[]) {
     char *pch;
 
     while(1) {
-        /*gets the current directory path and print it before the $ symbol*/
-        if (getcwd(dir, sizeof(dir)) == NULL) {
-            printf("getcwd() error");
-            exit(1);
-        }
-        printf("mysh3: %s$", dir);
+        printf("$");
 
         /*gets a string from the user*/
         while(getline(&input, &size, stdin) == -1) {
