@@ -99,10 +99,10 @@ This program allows making rooms reservation through regular sockets. As first t
 \section{Answers to the Questions}
 Q-A: To transfert any number of paper data structures (\texttt{struct article\_info}) from the server to the client we used a new structure, \texttt{struct article\_list}, that is a list of paper data structures. Proceeding in this way, the client can accesses the first paper data structure, print relative information and access the following paper info through the \texttt{next} field.
 
-Q-B: 
+Q-B: The problem is that we can't allocate all the data to transfer in one buffer and send it through RPC because it would require to much memory utilization. We have to use temporary buffers and send the data piece by piece until the receiver has all the packets to create the complete data stream. To do this we have to make multiple rpc calls between client and server. Since the server is stateless (doesn't remember which client has requested what) we need to implement a simple exchange protocol to make sure client and server are synchronized when sending and receiving the data packets so that the original stream is correctly sent.
 
 Q-C: To implement the HotelGateway we used an 'One thread per request' approach. We didn't use synchronization primitives to guarantee correctness because this is already guarantee on the \texttt{Hotel} implementation (the \texttt{book} method is \texttt{synchronized}).
 
-Q-D:
+Q-D:A gateway for the paperserver would be a server that listens to a specific port and checks incoming messages in the socket. Every time a new command is issued by a client connected, the gateway interprets the command and map it to a specific function of paperserver that it has to invoke. In this way the gateway is also an RPC client for paperserver. File transfer can be done in different ways. One way is the gateway ask the file to the paperserver and, when it has received it, bounces it back to the client. The communication can be done through sockets or through RPC.
 
 \end{document}

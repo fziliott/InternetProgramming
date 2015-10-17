@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 
         case 'a':
             //sa = malloc(sizeof(struct sent_article));
-            //strcpy(sa->author, argv[optind - 1]);
+            //strcpy(sa->author.base(), argv[optind - 1]);
             //strcpy(sa->name, argv[optind]);
             file = fopen(argv[optind + 1], "rb");
             if (file == NULL) {
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
             remaining = size;
             while(remaining > 0 ) {
                 sa=malloc(sizeof(struct sent_article));
-                //sa->author=malloc(sizeof(authorname));
+                //sa->author.base()=malloc(sizeof(authorname));
                 //sa->name=malloc(sizeof(filename));
                 //sa->data=malloc(sizeof(article));
                 sa->start = start_pos;
@@ -65,7 +65,6 @@ int main(int argc, char **argv) {
                 strcpy(sa->author, argv[optind - 1]);
                 strcpy(sa->name, argv[optind]);
                 //sa.data = malloc(sizeof(article));
-
 
                 bzero(sa->data, sizeof(article));
                 //                 fseek(file, 0L, SEEK_END);

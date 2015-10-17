@@ -1,11 +1,11 @@
 #include "paperserver.h"
-#include  <fcntl.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 char *articlesFile = "articles/articles.txt";
-
+int primo=0;
 FILE *openArticles() {
     FILE *file;
     struct stat st = {0};
@@ -25,7 +25,7 @@ FILE *openArticles() {
 /* retrieve article info*/
 int getArticleInfo(int id, article_info *ai) {
     bzero(ai->name, MAXLEN);
-    bzero(ai->author, MAXLEN);
+    //bzero(ai->author, MAXLEN);
     FILE *file;
     char *line = NULL;
     size_t len = 0;
@@ -51,10 +51,12 @@ int getArticleInfo(int id, article_info *ai) {
             if((token = strtok(NULL, "\t\n"))  == NULL) {
                 return -1;
             }
+            //ai->author=strdup(token);
             strcpy(ai->author, token);
             if((token = strtok(NULL, "\t\n"))  == NULL) {
                 return -1;
             }
+            //ai->name=strdup(token);
             strcpy(ai->name, token);
         }
     }
@@ -76,7 +78,7 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
     char *token;
     article_list *elem = &articleList;
 
-    bzero(&articleList, sizeof(article_list));
+    //bzero(&articleList, sizeof(article_list));
 
     file = openArticles();
 
@@ -111,6 +113,8 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
             articleList.item = NULL;
             return &articleList;
         }
+            //ai->author=strdup(token);
+
         strcpy(ai->author, token);
         if((token = strtok(NULL, "\t\n"))  == NULL) {
             if(articleList.item != NULL)
@@ -118,6 +122,7 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
             articleList.item = NULL;
             return &articleList;
         }
+        //ai->name=strdup(token);
         strcpy(ai->name, token);
         elem->item = ai;
         elem->next = NULL;
@@ -220,14 +225,14 @@ int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
     if (stat(filename, &st) == -1) {
         mkdir(filename, 0700);
     }
-    strcat(filename, sa->author);
+    strcat(filename, sa->name);
     /*create the author folded if it doesn't already exists*/
-    struct stat st1 = {0};
+    /*struct stat st1 = {0};
     if (stat(filename, &st1) == -1) {
         mkdir(filename, 0700);
     }
     strcat(filename, "/");
-    strcat(filename, sa->name);
+    strcat(filename, sa->name);*/
     file = openArticles();
     if(file == NULL) { //if file does not exist, create it
         file = fopen(articlesFile, "wb");
@@ -265,7 +270,6 @@ int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
     }
     fclose(newArticle);
 
-
     if(sa->finish == 1) {
         /*if the article doesn't exists, add it into the file containing the list of all articles*/
         if(!found) {
@@ -296,8 +300,8 @@ retrieved_article *retrievearticle_1_svc(article_request *request, struct svc_re
 
     if(ai != NULL) {    //if the article was find
         strcpy(fileName, dir);
-        strcat(fileName, ai->author);
-        strcat(fileName, "/");
+        //strcat(fileName, ai->author);
+        //strcat(fileName, "/");
         strcat(fileName, ai->name);
         file = fopen(fileName, "rb");
         if (file == NULL) {
@@ -310,7 +314,7 @@ retrieved_article *retrievearticle_1_svc(article_request *request, struct svc_re
         ra.total_size = size;
 
         //ra.data = malloc(sizeof(char) * size);
-        bzero(ra.data, sizeof(article));
+        //bzero(ra.data, sizeof(article));
         fseek(file, request->start, SEEK_SET);
 
         int n = fread(ra.data, 1, sizeof(char) * sizeof(article), file);
