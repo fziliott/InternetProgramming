@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>{block name="htitle"}Internet Programming Conference{/block}</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="tpl/css/bootstrap.min.css" rel="stylesheet">
+    <link href="tpl/css/sticky-footer-navbar.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <style>
+    body {
+        padding-top: 70px;
+        /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+    }
+    </style>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    {block name="hextra"}
+    <!-- Use this block for any additional stuff you want to add to the header -->
+    {/block}
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Internet Programming Conference</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Papers <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="paperload.php">Submit a Paper</a></li>
+                            <li><a href="papers.php">Paper List</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Hotel <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="hotellist.php">Available Rooms</a></li>
+                            <li><a href="hotelbook.php">Paper List</a></li>
+                            <li><a href="participants.php">Look who's coming!</a></li>
+
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Content -->
+    <div class="container">
+{block name="content"}
+        <div class="row">
+            <!-- 12 columns content - spans a whole row -->
+            <div class="col-lg-12 text-center">
+                <h1>Internet Programming Conference</h1>
+                <p>Welcome stranger!</p>
+            </div>
+        </div>
+        <div class="row">
+            <!-- split 12-column rown into two rows -->
+            <div class="col-lg-8">
+                <h2>Information</h2>
+                <p>
+                Use the menu above to navigate the site.
+                Click <a href={$cgibase}/ls.cgi>here</a> to view a list of installed cgi scripts.
+                </p>
+            </div>
+            <div class="col-lg-4">
+                <h2>System Configuration</h2>
+                <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Variable</th>
+                    <th>Value</th>
+                </tr>
+                </thead>
+                <tr>
+                    <td>phpbase</td>
+                    <td>{$phpbase|default:"N/A"}</td>
+                </tr>
+                <tr>
+                    <td>cgibase</td>
+                    <td>{$cgibase|default:"N/A"}</td>
+                </tr>
+                <tr>
+                    <td>hotelgwaddress</td>
+                    <td>{$hotelgwaddress|default:"N/A"}</td>
+                </tr>
+                <tr>
+                    <td>hotelgwaddress</td>
+                    <td>{$hotelgwport|default:"N/A"}</td>
+                </tr>
+                <tr>
+                    <td>paperadress</td>
+                    <td>{$paperaddress|default:"N/A"}</td>
+                </tr>
+                <tr>
+                    <td>paperport</td>
+                    <td>{$paperport|default:"N/A"}</td>
+                </tr>
+                </table>
+            </div>
+        </div>
+        <!-- /.row -->
+{/block}
+    </div>
+    <!-- /.container -->
+
+
+    <footer class="footer">
+      <div class="container">
+{block name="footer"}
+        <p class="text-muted" style="text-align:center;">
+        Generated on {$smarty.now|date_format:"%e %b %Y, %H:%M:%S"}.
+        Using <a href="http://getbootstrap.com/">Bootstrap v3.3.1</a>
+        and <a href="http://api.jquery.com/">jQuery v1.11.1</a>.
+        </p>
+{/block}
+      </div>
+    </footer>
+
+    <!-- jQuery Version 1.11.1 -->
+    <script src="tpl/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="tpl/js/bootstrap.min.js"></script>
+
+</body>
+</html>
