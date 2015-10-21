@@ -71,7 +71,6 @@ int getArticleInfo(int id, article_info *ai) {
         }
     }
 
-    printf("res: %d\n", found);
     fclose(file);
     return found;
 }
@@ -94,7 +93,6 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
     if (file == NULL) {
         articleList.item = NULL;
 
-        printf("return null\n");
         return &articleList;
     }
 
@@ -142,12 +140,10 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
     }
     fclose(file);
     if(articleList.item==NULL){
-        printf("item null\n");
         articleList.item=malloc(sizeof(article_info));
         articleList.item->id=-1;
         if(articleList.next==NULL){
             articleList.next=malloc(sizeof(article_list));
-            printf("next null\n");
         }
     }
     return &articleList;
@@ -160,14 +156,10 @@ article_info *retrievearticleinfo_1_svc(article_request *ar, struct svc_req *cl)
     if(res == 1){
         ai.id= ar->articleID;
         //printf("%d\n", ai.author.author_len);
-        printf("autore: %s, nome: %s\n", ai.author, ai.name );
+        //printf("autore: %s, nome: %s\n", ai.author, ai.name );
     }else {
         ai.id=-1;
     }
-    if(&ai == NULL ){
-        printf("ritorno null\n");
-    }
-    printf("res %d\n", res);
     return &ai;
 }
 
@@ -258,8 +250,8 @@ int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
     }
     strcat(filename, sa->name);
 
-    printf("ricevuto author: %s\n",sa->author );
-    printf("ricevuto nome: %s\n",sa->name );
+  //  printf("ricevuto author: %s\n",sa->author );
+   // printf("ricevuto nome: %s\n",sa->name );
 
 
     /*create the author folded if it doesn't already exists*/
@@ -353,7 +345,6 @@ ra.data.data_val=malloc(FILELEN);
         int n = fread(ra.data.data_val, 1, FILELEN, file);
         ra.data.data_len=n;
         ra.size = n;
-        printf("5\n");
         //ra.size = n;
         fclose(file);
         return (&ra);
