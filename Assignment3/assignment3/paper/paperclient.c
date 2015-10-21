@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     retrieved_article *ra;
     article_list *al;
     article_info *ai;
-    sent_article* sa;
+    sent_article *sa;
 
     int *id;
     char *cvalue;
@@ -29,7 +29,6 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-
     while ((c = getopt (argc, argv, "ha:f:i:r:l")) != -1) {
         switch (c) {
         case 'h':
@@ -43,41 +42,72 @@ int main(int argc, char **argv) {
             break;
 
         case 'a':
+            printf("2\n");
             //sa = malloc(sizeof(struct sent_article));
             //strcpy(sa->author.base(), argv[optind - 1]);
             //strcpy(sa->name, argv[optind]);
+            char author[MAXLEN];
+            char name[MAXLEN];
+            strcpy(author, argv[optind - 1]);
+            strcpy(name, argv[optind]);
+
+            printf("len input %d\n", strlen(argv[optind]) );
+
+            int o = 0;
+            printf("characters: ");
+            while(*(author + o) != NULL) {
+                printf("%s\n", author + o );
+                o++;
+            }
+
             file = fopen(argv[optind + 1], "rb");
             if (file == NULL) {
                 return -1;
             }
+            printf("\n3\n");
             fseek(file, 0, SEEK_END);
             int size = ftell(file);
             rewind(file);
-
             remaining = size;
             while(remaining > 0 ) {
-                sa=malloc(sizeof(struct sent_article));
+                sa = malloc(sizeof(struct sent_article));
+                //printf("%s\n",argv[optind - 1] );
+                //printf("%s\n",argv[optind ] );
                 //sa->author.base()=malloc(sizeof(authorname));
                 //sa->name=malloc(sizeof(filename));
                 //sa->data=malloc(sizeof(article));
                 sa->start = start_pos;
                 sa->finish = 0;
-                strcpy(sa->author, argv[optind - 1]);
-                strcpy(sa->name, argv[optind]);
+                printf("dd %s\n", author );
+                sa->author = malloc(strlen(author));
+
+
+                strcpy(sa->author, author);
+                printf("inviato author: %s\n", sa->author);
+
+                //sa->author=strdup(argv[optind - 1]);
+                //sa->author.author_len=strlen(author);
+                printf("%s\n", sa->author);
+                // printf("%d\n",sa->author.author_len );
+                sa->name = malloc(strlen(name));
+                // sa->name.name_len=strlen(name);
+                sprintf(sa->name, "%s", argv[optind] );
+                //strcpy((char*)sa->name, argv[optind]);
                 //sa.data = malloc(sizeof(article));
 
-                bzero(sa->data, sizeof(article));
+                //bzero(sa->data, sizeof(article));
                 //                 fseek(file, 0L, SEEK_END);
                 // int k = ftell(file);
                 // fseek(file, 0L, SEEK_SET);
-
-                num_read = fread(sa->data, 1, sizeof(article), file);
+                sa->data.data_val = malloc(FILELEN);
+                num_read = fread(sa->data.data_val, 1, FILELEN, file);
+                sa->data.data_len = num_read;
 
                 //printf("read %d\n", num_read);
                 sa->size = num_read;
                 remaining = remaining - num_read;
                 start_pos = start_pos + num_read;
-                sa->start=start_pos;
+                sa->start = start_pos;
                 //printf("remaining : %d\n", remaining );
                 if(remaining == 0)
                     sa->finish = 1;
@@ -104,7 +134,7 @@ int main(int argc, char **argv) {
             ra = retrievearticle_1(&ar, cl);
             int total_size = ra->total_size;
             while(read < total_size) {
-                int n = fwrite(ra->data, sizeof(char), ra->size, stdout);
+                int n = fwrite(ra->data.data_val, sizeof(char), ra->data.data_len, stdout);
                 read = read + n;
                 ar.start = read ;
                 ra =  retrievearticle_1(&ar, cl);
@@ -117,13 +147,26 @@ int main(int argc, char **argv) {
             break;
 
         case 'i':
+        printf("in i\n");
             cvalue = optarg;
             ar.articleID = atoi(cvalue);
+            printf("2\n");
             ai = retrievearticleinfo_1(&ar, cl);
-            if(ai != NULL && strcmp(ai->author, "") && strcmp(ai->name, "")) {
-                printf("%s\t%s\n", ai->author, ai->name);
+            printf("3\n");
+            if(ai==NULL){
+                printf("problema\n");
+                break;
+            }
+            if(ai->id == -1) {
+                printf("No article with id: %d\n", ar.articleID);
             } else {
-                printf("Can't retrieve article info\n");
+                printf("11\n");
+                printf("author : %s\n", ai->author);
+                if(ai != NULL && strcmp(ai->author, "") && strcmp(ai->name, "")) {
+                    printf("%s\t%s\n", ai->author, ai->name);
+                } else {
+                    printf("Can't retrieve article info\n");
+                }
             }
             break;
 

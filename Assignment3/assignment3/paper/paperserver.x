@@ -1,7 +1,6 @@
 const MAXLEN = 2048;
 const FILELEN = 64000;
 
-typedef char article[FILELEN];
 
 struct article_request {
     int articleID;
@@ -9,7 +8,7 @@ struct article_request {
 };
 
 struct retrieved_article {
-    char data[FILELEN];
+    opaque data<>;
     int size;
     int total_size;
 };

@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 char *articlesFile = "articles/articles.txt";
-int primo=0;
+int primo = 0;
 FILE *openArticles() {
     FILE *file;
     struct stat st = {0};
@@ -24,7 +24,7 @@ FILE *openArticles() {
 
 /* retrieve article info*/
 int getArticleInfo(int id, article_info *ai) {
-    bzero(ai->name, MAXLEN);
+    //bzero(ai->name, MAXLEN);
     //bzero(ai->author, MAXLEN);
     FILE *file;
     char *line = NULL;
@@ -40,6 +40,9 @@ int getArticleInfo(int id, article_info *ai) {
         return -1;
     }
     ai->id = id;
+    ai->author=malloc(sizeof(char));
+    ai->name=malloc(sizeof(char));
+
     /*search article on articles list, retrieve author and name*/
     while ((read = getline(&line, &len, file)) != -1 && !found) {
         if((token = strtok(line, "\t\n"))  == NULL) {
@@ -51,18 +54,24 @@ int getArticleInfo(int id, article_info *ai) {
             if((token = strtok(NULL, "\t\n"))  == NULL) {
                 return -1;
             }
-            //ai->author=strdup(token);
+
+            ai->author = malloc(strlen(token));
             strcpy(ai->author, token);
+            //ai->author=strdup(token);
+           // ai->author.author_len = strlen(token);
             if((token = strtok(NULL, "\t\n"))  == NULL) {
                 return -1;
             }
             //ai->name=strdup(token);
+            ai->name = malloc(strlen(token));
             strcpy(ai->name, token);
+
+           // ai->name.name_len = strlen(token);
+
         }
     }
-    if(read == -1)
-        return -1;
 
+    printf("res: %d\n", found);
     fclose(file);
     return found;
 }
@@ -113,9 +122,11 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
             articleList.item = NULL;
             return &articleList;
         }
-            //ai->author=strdup(token);
-
+        ai->author = malloc(strlen(token));
         strcpy(ai->author, token);
+
+        //ai->author=strdup(token);
+       // ai->author.author_len = strlen(token);
         if((token = strtok(NULL, "\t\n"))  == NULL) {
             if(articleList.item != NULL)
                 free(articleList.item);
@@ -123,11 +134,22 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
             return &articleList;
         }
         //ai->name=strdup(token);
+        ai->name = malloc(strlen(token));
+        //ai->name.name_len = strlen(token);
         strcpy(ai->name, token);
         elem->item = ai;
         elem->next = NULL;
     }
     fclose(file);
+    if(articleList.item==NULL){
+        printf("item null\n");
+        articleList.item=malloc(sizeof(article_info));
+        articleList.item->id=-1;
+        if(articleList.next==NULL){
+            articleList.next=malloc(sizeof(article_list));
+            printf("next null\n");
+        }
+    }
     return &articleList;
 }
 
@@ -135,8 +157,17 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
 article_info *retrievearticleinfo_1_svc(article_request *ar, struct svc_req *cl) {
     static article_info ai;
     int res = getArticleInfo(ar->articleID, &ai);
-    if(res != -1)
-        printf("%s, %s\n", ai.author, ai.name );
+    if(res == 1){
+        ai.id= ar->articleID;
+        //printf("%d\n", ai.author.author_len);
+        printf("autore: %s, nome: %s\n", ai.author, ai.name );
+    }else {
+        ai.id=-1;
+    }
+    if(&ai == NULL ){
+        printf("ritorno null\n");
+    }
+    printf("res %d\n", res);
     return &ai;
 }
 
@@ -150,8 +181,8 @@ int *removearticle_1_svc(article_request *ar, struct svc_req *cl) {
     size_t read;
     char *token = NULL;
     article_info *ai = malloc(sizeof(article_info));
-    getArticleInfo(ar->articleID, ai);
-    if(ai == NULL) {
+    int found=getArticleInfo(ar->articleID, ai);
+    if(found != 1) {
         res = -1;
         return (&res);
     }
@@ -160,8 +191,8 @@ int *removearticle_1_svc(article_request *ar, struct svc_req *cl) {
     bzero(fileName, MAXLEN);
 
     strcpy(fileName, "articles/");
-    strcat(fileName, ai->author);
-    strcat(fileName, "/");
+    //strcat(fileName, ai->author);
+    //strcat(fileName, "/");
     strcat(fileName, ai->name);
 
     int status = remove(fileName);
@@ -226,6 +257,11 @@ int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
         mkdir(filename, 0700);
     }
     strcat(filename, sa->name);
+
+    printf("ricevuto author: %s\n",sa->author );
+    printf("ricevuto nome: %s\n",sa->name );
+
+
     /*create the author folded if it doesn't already exists*/
     /*struct stat st1 = {0};
     if (stat(filename, &st1) == -1) {
@@ -248,7 +284,6 @@ int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
             return &error;
         }
         if(strcmp(token, sa->author) == 0) {
-
             if((token = strtok(NULL, "\t\n"))  == NULL) {
                 return &error;
             }
@@ -266,7 +301,7 @@ int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
         newArticle = fopen(filename, "a");
     }
     if(sa->size > 0) {
-        fwrite(sa->data, 1, sa->size, newArticle );
+        fwrite(sa->data.data_val, 1, sa->data.data_len, newArticle );
     }
     fclose(newArticle);
 
@@ -296,9 +331,8 @@ retrieved_article *retrievearticle_1_svc(article_request *request, struct svc_re
     FILE *file;
     char fileName[MAXLEN];
     char *dir = "articles/";
-    getArticleInfo(request->articleID, ai);
-
-    if(ai != NULL) {    //if the article was find
+    int res=getArticleInfo(request->articleID, ai);
+    if(res == 1) {    //if the article was found
         strcpy(fileName, dir);
         //strcat(fileName, ai->author);
         //strcat(fileName, "/");
@@ -312,17 +346,20 @@ retrieved_article *retrievearticle_1_svc(article_request *request, struct svc_re
         int size = ftell(file);
         rewind(file);
         ra.total_size = size;
-
         //ra.data = malloc(sizeof(char) * size);
         //bzero(ra.data, sizeof(article));
+ra.data.data_val=malloc(FILELEN);
         fseek(file, request->start, SEEK_SET);
-
-        int n = fread(ra.data, 1, sizeof(char) * sizeof(article), file);
+        int n = fread(ra.data.data_val, 1, FILELEN, file);
+        ra.data.data_len=n;
         ra.size = n;
+        printf("5\n");
         //ra.size = n;
         fclose(file);
         return (&ra);
+    }else{
+        ra.total_size=-1;
+        return &ra;
     }
-    return NULL;
 }
 
