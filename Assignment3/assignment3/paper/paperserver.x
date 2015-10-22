@@ -1,5 +1,5 @@
 const MAXLEN = 2048;
-const FILELEN = 64000;
+const FILELEN = 20000000;
 
 
 struct article_request {

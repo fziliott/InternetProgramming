@@ -29,6 +29,16 @@ Then reinstall Apache with PHP support:
 # apt-get install apache2 libapache2-mod-php5
 ```
 
+### SSL library for compiling ccgi
+
+You probably want to use [libccgi](http://libccgi.sourceforge.net/doc.html) for implementing
+your CGI programs in C. This is a good time to install the library's dependencies.
+
+```
+apt-get install libssl-dev
+```
+
+
 ### Configure Apache
 In oreder to work from your user directory, you need to enable the `userdir` Apache module. You also need to enable the `cgi` module. Use the following commands:
 
