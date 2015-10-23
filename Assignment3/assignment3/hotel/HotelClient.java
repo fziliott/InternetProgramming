@@ -57,10 +57,6 @@ public class HotelClient {
                 }
             }
 
-            // Let's now try to divide by zero!
-            // The server will continue to work.
-            // The exception will be propagated to the client.
-            //System.out.println( c.div(10, 0) ); // Division by zero!!
         } catch (Exception e) {
             System.out.println("Received Exception:");
             System.out.println(e);

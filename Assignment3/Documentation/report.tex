@@ -36,24 +36,24 @@
 \section{Report}
 \subsection{A Paper Storage Server}
 \subsubsection{Paperserver}
-The server stores all the documents in the folder ``./articles''. The list of all the documents stored is contained in the file ``./articles/articles.txt''. Two authors may have articles with the same name, to avoid conflicts the server stores the articles in subfolders named with the author's names.
+The server stores in memory as a linked list of structures paperitem. This contains the specific information of a paper (id, author and filename) and a pointer to the data where the paper is stored, with also the size of the paper.
 The data structures we use for exchanging data between client and server are the following:
 \begin{itemize}
 \item article\_request: this contains the article id;
 \item article\_info: contains the information about one article (id, name, author);
 \item article\_list: a linked list of article\_info;
-\item sent\_article: this structure contains the data of an article that is sent through the network. We send also the size of the article so that we know how many bytes we need to read and how much space to allocate;
+\item sent\_article: this structure contains the data of an article that is sent through the network. We send also the size of the article so that we know how many bytes we need to read and how much space to allocate. The data that contains the paper is an \texttt{opaque}, meaning that those are raw bytes without any kind of interpretation. This helps in managing all types of data (text or binary);
 \item retrieved\_article: this contains the data (and its size) of an article that is retrieve from the server. The size of the article is useful for the same reason of the previous structure.
 \end{itemize}
 
 
 The server has the following RPC functions:
 \begin{itemize}
-\item \texttt{listarticle\_1\_svc}: the server parses the file "article.txt" and creates for each article found an article\_info structure. These are linked together to create a list of article\_list items that are sent back to the client.
-\item \texttt{retrievearticleinfo\_1\_svc}: the file ``articles.txt'' is parsed until the id specified in the article\_request is found. If found, the correct information (author name and filename) is sent to the client, if not, \texttt{NULL} is returned.
-\item \texttt{removearticle\_1\_svc}: first, the id is searched in the ``articles.txt'' file. If there is an entry, its corresponding file is deleted and the entry is removed from the ``articles.txt'' file. If not, -1 is returned, meaning that something went wrong during the deletion.
-\item \texttt{sendarticle\_1\_svc}: the server receives the author name, the name of the file and its contents. If the combination (author, filename) is already present, the old file is updated with the new one. Otherwise, a new entry is created (with a new id) and the file is stored (if the author is not already present, a new folder for that author is created).
-\item \texttt{retrievearticle\_1\_svc}: the server searches the entry with the id indicated by the client. If found, the corresponding file is loaded and sent to the client. Otherwise, \texttt{NULL} is returned.
+\item \texttt{listarticle\_1\_svc}: the server goes through the \texttt{papers} list and creates for each article found an article\_info structure. These are linked together to create a list of article\_list items that are sent back to the client.
+\item \texttt{retrievearticleinfo\_1\_svc}: the server searches the \texttt{paperitem} in the list of papers. If found, the correct information (author name and filename) is sent to the client, if not, an error signal is returned.
+\item \texttt{removearticle\_1\_svc}: the correct id is searched in the list. If there is an entry, it's removed from the list (this is enough because to show all papers information, all the list has to be scanned again). If not, an error is returned.
+\item \texttt{sendarticle\_1\_svc}: the server receives the author name, the name of the file and its contents. If the combination (author, filename) is already present, the old file is updated with the new one. To do this, we just need to delete the memory segment containing the old file, create a new one with the correct size and copy the received data. Otherwise, a new entry is created (with a new id) and the file is stored.
+\item \texttt{retrievearticle\_1\_svc}: the server searches the entry with the id indicated by the client. If found, the corresponding file is loaded and sent to the client. Otherwise, an error signal is returned.
 \end{itemize}
 
 
@@ -97,9 +97,10 @@ This class represents the client. As first thing asks to the \texttt{rmi registr
 This program allows making rooms reservation through regular sockets. As first thing, it asks to the \texttt{rmi registry} to have access to the \texttt{Hotel} remote object. After instantiate a  \texttt{ServerSocket} to receive connections, for each incoming request it generates a new \texttt{Socket} and assigns the management of the communication to a new thread. The new thread parses the input stream of the received socket and invokes the correct method in the remote object (b,h,l,g).
 
 \section{Answers to the Questions}
-Q-A: To transfert any number of paper data structures (\texttt{struct article\_info}) from the server to the client we used a new structure, \texttt{struct article\_list}, that is a list of paper data structures. Proceeding in this way, the client can accesses the first paper data structure, print relative information and access the following paper info through the \texttt{next} field.
+Q-A: To transfer any number of paper data structures (\texttt{struct article\_info}) from the server to the client we used a new structure, \texttt{struct article\_list}, that is a list of paper data structures. Proceeding in this way, the client can accesses the first paper data structure, print relative information and access the following paper info through the \texttt{next} field. The RPC runtime allows to insert pointers inside data structure that are used for parameters/return values and manages the marshalling/unmarshalling of these data structures (even with recursive structures like a list). 
 
-Q-B: The problem is that we can't allocate all the data to transfer in one buffer and send it through RPC because it would require to much memory utilization. We have to use temporary buffers and send the data piece by piece until the receiver has all the packets to create the complete data stream. To do this we have to make multiple rpc calls between client and server. Since the server is stateless (doesn't remember which client has requested what) we need to implement a simple exchange protocol to make sure client and server are synchronized when sending and receiving the data packets so that the original stream is correctly sent.
+Q-B: The problem is that we can't allocate all the data to transfer in one buffer and send it through RPC because it would require too much memory utilization. We have to use temporary buffers and send the data piece by piece until the receiver has all the packets to create the complete data stream. In this way we occupy only a determined portion of memory at a time, but we can send files of any dimensions. To do this we have to make multiple rpc calls between client and server. Since the server is stateless (doesn't remember which client has requested what) we need to implement a simple exchange protocol to make sure client and server are synchronized when sending and receiving the data packets so that the original stream is correctly sent.\\
+An alternative would be to create a socket connection that manages the data exchange. The problem is that the server can't remain blocked too much time on a client to send/retrieve a big file, so we would need to use a separate thread or process to exchange data with the client. 
 
 Q-C: To implement the HotelGateway we used an 'One thread per request' approach. We didn't use synchronization primitives to guarantee correctness because this is already guarantee on the \texttt{Hotel} implementation (the \texttt{book} method is \texttt{synchronized}).
 

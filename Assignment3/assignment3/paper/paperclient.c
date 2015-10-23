@@ -5,22 +5,27 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+void handler();
+void setSignals();
+
+retrieved_article *ra;
+article_list *al;
+article_info *ai;
+sent_article *sa;
+
 int main(int argc, char **argv) {
+    setSignals();
     CLIENT *cl;
     article_request ar;
-    retrieved_article *ra;
-    article_list *al;
-    article_info *ai;
-    sent_article *sa;
+
     char author[MAXLEN];
     char name[MAXLEN];
     int *id;
     char *cvalue;
-    FILE *file;
     int c;
-    int start_pos = 0;
     int num_read = 0;
-    int remaining;
+    FILE* file;
+
     if(argc < 2) {
         return -1;
     }
@@ -65,6 +70,7 @@ int main(int argc, char **argv) {
             num_read = fread(sa->data.data_val, 1, size, file);
             sa->data.data_len = num_read;
             id = sendarticle_1(sa, cl);
+            free(sa->data.data_val);
             free(sa);
 
             if(id != NULL && *id != -1) {
@@ -82,13 +88,7 @@ int main(int argc, char **argv) {
             ar.start = 0;
             ra = retrievearticle_1(&ar, cl);
             int n = fwrite(ra->data.data_val, sizeof(char), ra->data.data_len, stdout);
-            /*int total_size = ra->total_size;
-            while(read < total_size) {
-                int n = fwrite(ra->data.data_val, sizeof(char), ra->data.data_len, stdout);
-                read = read + n;
-                ar.start = read ;
-                ra =  retrievearticle_1(&ar, cl);
-            }*/
+
             fflush(stdout);
             break;
 
@@ -138,4 +138,21 @@ int main(int argc, char **argv) {
         }
     }
     return 0;
+}
+
+void handler() {
+    if(sa!=NULL){
+        if(sa->data.data_val!= NULL)
+            free(sa->data.data_val);
+        free(sa);
+    }
+    sa=NULL;
+    exit(0);
+}
+
+void setSignals(){
+    signal(SIGINT, handler);
+    signal(SIGTERM, handler);
+    signal(SIGQUIT, handler);
+    signal(SIGHUP, handler);
 }

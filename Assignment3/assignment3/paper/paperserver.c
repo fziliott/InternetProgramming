@@ -16,14 +16,13 @@ struct paperitem {
     int dataSize;
     struct paperitem *next;
 };
+static retrieved_article ra;
 
 int papersId;
 
 struct paperitem *papers = NULL;
 
-/*finalization function, for a safe closure*/
 void handler() {
-    printf("called handler\n");
     struct paperitem* item=papers;
     while(item!=NULL){
         struct paperitem* tmp=item->next;
@@ -31,6 +30,8 @@ void handler() {
         free(item);
         item=tmp;
     }
+
+    xdr_free ((xdrproc_t) xdr_sent_article, (char *) &ra);
     papers=NULL;
     exit(0);
 }
@@ -41,21 +42,6 @@ void setSignals(){
     signal(SIGQUIT, handler);
     signal(SIGHUP, handler);
 }
-
-void printItems(struct paperitem *list) {
-    int i = 0;
-    printf("ora printo\n");
-    while(list != NULL) {
-        printf("\nElemento %d:\n", i);
-        printf("id: %d\n", list->id);
-        printf("author: %s\n", list->author );
-        printf("name: %s\n", list->name );
-        printf("data size %d\n", list->dataSize );
-        list = list->next;
-        i++;
-    }
-}
-
 
 /* retrieve article info*/
 int getArticleInfo(int id, article_info *ai) {
@@ -249,7 +235,6 @@ res=artID;
 
 /*retrieve article from ID*/
 retrieved_article *retrievearticle_1_svc(article_request *request, struct svc_req *rqstp) {
-    static retrieved_article ra;
     article_info *ai = malloc(sizeof(article_info));
 
     struct paperitem *item = getArticle(request->articleID);
