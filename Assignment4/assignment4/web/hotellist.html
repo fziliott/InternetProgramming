@@ -1,0 +1,14 @@
+{extends file="tpl/index.html"} 
+{block name="content"}
+<h1>List of hotel rooms</h1>
+<table class="roomlist">
+<thead>
+<tr><th>Room Type</th><th>Free Rooms</th></tr>
+</thead>
+<tbody>
+<tr class="room"><td class="type">A</td><td class="count">{$type1}</td></tr>
+<tr class="room"><td class="type">B</td><td class="count">{$type2}</td></tr>
+<tr class="room"><td class="type">C</td><td class="count">{$type3}</td></tr>
+</tbody>
+</table>
+{/block}
