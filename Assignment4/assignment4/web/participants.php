@@ -26,13 +26,12 @@ $err = 'No error';
 if ($socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) {
 	if (socket_connect($socket, $HOTELGW_ADDRESS, $HOTELGW_PORT)) {
 		socket_read($socket, 2048);
-		socket_write($socket, "l\n");
-		$line = trim(socket_read($socket, 2048));
-		$rooms = explode("\t", $line);
+		socket_write($socket, "g\n");
+		$res = socket_read($socket, 2048);
+		$lines = explode("\n", $res);
+		array_splice($lines, count($lines) - 1);
 
-		$smarty->assign('type1', $rooms[0]);
-		$smarty->assign('type2', $rooms[1]);
-		$smarty->assign('type3', $rooms[2]);
+		$smarty->assign('customer', $lines);
 
 		socket_close($socket);
 	} else {
@@ -42,5 +41,5 @@ if ($socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) {
 	$err = $err . "Cannot create socket!\n";
 }
 
-$smarty->display('extends:tpl/hotellist.html');
+$smarty->display('extends:tpl/participants.html');
 ?>

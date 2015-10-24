@@ -1,7 +1,7 @@
 <?php
 // Initialize Smarty.
-ini_set('display_errors', true);
-
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 $topdir = realpath(".");
@@ -22,25 +22,33 @@ $smarty->assign('paperaddress', $PAPER_ADDRESS);
 $smarty->assign('paperport', $PAPER_PORT);
 
 $err = 'No error';
+$todisplay = "hotelform.html";
 
+$smarty->assign('result', "errore");
+
+if (!empty($_GET)) {
+
+if(isset($_GET['type'] && isset($_GET['name']))){
 if ($socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) {
-	if (socket_connect($socket, $HOTELGW_ADDRESS, $HOTELGW_PORT)) {
-		socket_read($socket, 2048);
-		socket_write($socket, "l\n");
-		$line = trim(socket_read($socket, 2048));
-		$rooms = explode("\t", $line);
+if (socket_connect($socket, $HOTELGW_ADDRESS, $HOTELGW_PORT)) {
+socket_read($socket, 2048);
+$req="b $_GET['type'] $_GET['name']\n";
+socket_write($socket, $req);
+$res = trim(socket_read($socket, 2048));
 
-		$smarty->assign('type1', $rooms[0]);
-		$smarty->assign('type2', $rooms[1]);
-		$smarty->assign('type3', $rooms[2]);
+$todisplay="hotelbook.html";
 
-		socket_close($socket);
-	} else {
-		$err = $err . "Cannot connect with addr $HOTELGW_ADDRESS:$HOTELGW_PORT!\n";
-	}
+socket_close($socket);
 } else {
-	$err = $err . "Cannot create socket!\n";
+$err = $err . "Cannot connect with addr $HOTELGW_ADDRESS:$HOTELGW_PORT!\n";
+}
+} else {
+$err = $err . "Cannot create socket!\n";
+}
 }
 
-$smarty->display('extends:tpl/hotellist.html');
+}
+$smarty->display('extends:tpl/' . $todisplay);
+
+
 ?>

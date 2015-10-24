@@ -1,0 +1,9 @@
+{extends file="./index.html"} 
+{block name="content"}
+<h1>List of users</h1>
+<ol class="guests">
+{section name=i loop=$customer}
+<li>{$customer[i]}</li>
+{/section}
+</ol>
+{/block}

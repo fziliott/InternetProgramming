@@ -44,7 +44,7 @@ class ClientHandler implements Runnable {
                 case "b":
                     //writer.write( "\n");
                     //writer.flush();
-                    if( arguments.length == 3) {
+                    if( arguments.length > 2) {
                         int type = 42;
                         //writer.write(arguments[g.getOptind() ]);
 
@@ -54,7 +54,12 @@ class ClientHandler implements Runnable {
                         } catch(NumberFormatException e) {}
 
                         String name = arguments[2];
-
+                        int i=3;
+                        while(i<arguments.length){
+                            name=name + " " + arguments[i];
+                            System.out.println(name);
+                            i++;
+                        }
                         if(HotelGateway.hotelServer.book(type, name)) {
                             writer.write("ok\n");
                         } else {
