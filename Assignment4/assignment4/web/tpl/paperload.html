@@ -1,0 +1,16 @@
+{extends file="tpl/index.html"} 
+{block name="content"}
+		<h1>Paper Upload</h1>
+        <form method=”post” action=”paperload.cgi” enctype=”multipart/form-data”>
+            Paper Author:<br>
+  			<input type="text" name="author">
+  			<br>
+  			File Name:<br>
+  			<input type="text" name="name">
+  			<br>
+  			<input type="hidden" name="action" value="upload" />
+            <input type="file" name="file" />
+            <br />
+            <input type="submit" value="Carica online" />
+        </form>
+{/block}

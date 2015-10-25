@@ -1,0 +1,35 @@
+{extends file="tpl/index.html"} 
+{block name="hextra"}
+<script src="tpl/js/jquery.js"></script>
+<script>
+$(document).ready(function () { // This event fires when the document is loaded
+		/*var data='[ { "id": 1, "title": "dalROP: Identifying ROP Gadgets in Dalek Firmware", "author": "Doctor Who" }, { "id": 2, "title": "Time Travel using the Tardis: Theory vs. Practice", "author": "Sarah Jane Smith" } ]';
+		var paperList=JSON.parse(data);*/
+		$.get('cgi-bin/papers.cgi')
+    	.done(function(data) {
+    	alert("FINIO-> "+data);
+    	var paperList=JSON.parse(data);
+		var $ul = $( "<ul class='paperlist'/>" );
+		for (i=0;i<paperList.length;i++){
+			alert(paperList.length);
+			var paper=paperList[i];
+			var $li = $("<li class='paper'/>");
+			var $id = $("<span class='id'/>");
+			var $author = $("<span class='author'/>");
+			var $title = $("<a class='title' href=paperview.cgi?id="+paper.id+"/>");
+			$id.text("["+paper.id+"]");
+			$author.text(paper.author);
+			$title.text(paper.title);
+			$li.append($id);
+			$li.append($author);
+			$li.append($title);
+			$ul.append($li);
+			$("body").append($ul);
+		}
+		});
+	});
+</script>
+{/block}
+{block name="content"}
+<h1>Retrieved Papers</h1>
+{/block}
