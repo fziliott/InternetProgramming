@@ -17,5 +17,5 @@ $smarty->assign('hotelgwport', $HOTELGW_PORT);
 $smarty->assign('paperaddress', $PAPER_ADDRESS);
 $smarty->assign('paperport', $PAPER_PORT);
 
-$smarty->display('extends:prova.html');
+$smarty->display('extends:tpl/papers.html');
 ?>
