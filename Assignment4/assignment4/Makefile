@@ -1,6 +1,6 @@
 .PHONY: all config
 
-all: config web/smarty ccgi/libccgi.a
+all: config web/smarty ccgi/libccgi.a paper hotel
 
 config: web/config.php paper/config.h
 
@@ -15,3 +15,13 @@ web/smarty:
 
 ccgi/libccgi.a:
 	make -C ccgi
+
+paper:
+		make -C paper build
+
+hotel:
+		make -C hotel build
+
+clean:
+		make -C paper clean
+		make -C hotel clean
