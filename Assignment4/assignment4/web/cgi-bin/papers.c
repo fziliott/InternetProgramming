@@ -6,7 +6,7 @@
 char buffer[MAXLEN];
 
 char* stringify(struct article_info* ai){
-    sprintf(buffer, "{\n\t\t\"id\" : \"%d\"\n\t\t\"title\" : \"%s\"\n\t\t\"author\" : \"%s\"\n}\n",ai->id,ai->name,ai->author);
+    sprintf(buffer, "{\"id\"\"%d\" , \"title\" : \"%s\" , \"author\" : \"%s\"}",ai->id,ai->name,ai->author);
     return buffer;
 }
 
@@ -16,7 +16,7 @@ int main(int argc, char const *argv[]) {
     article_list *al;
     article_info ai;
     char list[MAXLEN];
-    strcpy(list, "[\n\t");
+    strcpy(list, "[");
 
     cl = clnt_create(PAPER_ADDRESS, ARTICLE_PROG, ARTICLE_VER, "tcp");
     if (cl == NULL) {
@@ -28,6 +28,8 @@ int main(int argc, char const *argv[]) {
     
     while(al != NULL && al->item != NULL && al->item->id != -1) {
         strcat(list, stringify(al->item));
+        strcat(list, ",");
+
         //printf("%s\n",stringify(al->item) );
         //printf( "%d\t%s\t%s\n", al->item->id, al->item->author, al->item->name);
         al = al->next;
