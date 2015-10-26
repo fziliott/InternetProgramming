@@ -4,30 +4,13 @@ LDFLAGS =
 SOURCES_C = paperserver.c paperclient.c papers.c paperinfo.c paperload.c paperview.c
 OBJECTS = paperclient.o paperserver_clnt.o paperserver_xdr.o paperserver.o paperserver_svc.o add_clnt.c  papers.o paperinfo.o paperview.o paperload.o
 SOURCES_JAVA = ./client/HotelClient.java ./server/HotelServer.java
-EXEC = paperserver paperclient papers.cgi paperinfo.cgi  
+EXEC = paperserver paperclient
 
 build: $(EXEC)
 
 jrun: java run
 
 all: clean build
-
-papers.cgi: papers.o
-		$(CC) -o papers papers.o paperserver_clnt.o paperserver_xdr.o  -lnsl  
-paperinfo.cgi: paperinfo.o
-		$(CC) -o paperinfo.cgi paperinfo.o paperserver_clnt.o paperserver_xdr.o  -lnsl 
-paperload.cgi: paperload.o
-		$(CC) -o paperload paperload.o paperserver_clnt.o paperserver_xdr.o  -lnsl  
-paperview.cgi: paperview.o
-		$(CC) -o paperview paperview.o paperserver_clnt.o paperserver_xdr.o  -lnsl 
-papers.o: papers.c paperserver.h 
-		$(CC) $(CFLAGS) -c -o papers.o papers.c
-paperinfo.o: paperinfo.c paperserver.h
-		$(CC) $(CFLAGS) -c -o paperinfo.o paperinfo.c
-paperload.o: paperload.c paperserver.h
-		$(CC) $(CFLAGS) -c -o paperload.o paperload.c
-paperview.o: paperview.c paperserver.h
-		$(CC) $(CFLAGS) -c -o paperview.o paperview.c
 
 
 paperclient: paperclient.o paperserver_clnt.o paperserver_xdr.o 

@@ -21,9 +21,11 @@ $smarty->assign('paperport', $PAPER_PORT);
 $err = 'No error';
 $todisplay = "hotelform.html";
 
-$smarty->assign('result', "errore");
+$smarty->assign('result', "No error");
 
 if (!empty($_GET)) {
+	$todisplay = "hotelbook.html";
+
 	if (isset($_GET['type'], $_GET['name'])) {
 		if ($socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) {
 			if (socket_connect($socket, $HOTELGW_ADDRESS, $HOTELGW_PORT)) {
@@ -34,39 +36,19 @@ if (!empty($_GET)) {
 
 				$smarty->assign('result', $res);
 
-				$todisplay = "hotelbook.html";
-
 				socket_close($socket);
 			} else {
-				$err = $err . "Cannot connect with addr $HOTELGW_ADDRESS:$HOTELGW_PORT!\n";
+				$err = "Cannot connect with addr $HOTELGW_ADDRESS:$HOTELGW_PORT!\n";
 			}
-		} else { $err = "Impossible to open socket";}
-	} else { $err = "No correct input";}
-} else { $err = "No get";}
-//if(isset($_GET['type'] && isset($_GET['name']))){
-/*if ($socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) {
-if (socket_connect($socket, $HOTELGW_ADDRESS, $HOTELGW_PORT)) {
-
-/*socket_read($socket, 2048);
-$req="b $_GET['type'] $_GET['name']\n";
-socket_write($socket, $req);
-$res = trim(socket_read($socket, 2048));
-
-$todisplay="hotelbook.html";
-
-socket_close($socket);
-} else {
-$err = $err . "Cannot connect with addr $HOTELGW_ADDRESS:$HOTELGW_PORT!\n";
+		} else { $err = "Can't open connection to the server";}
+	} else { $err = "Error retrieving the input";}
 }
-}*/
-// else {
-//$err = $err . "Cannot create socket!\n";
-//}
-//}
 
-//}
+if ($err != "No error") {
+	$smarty->assign('error', $err);
+	$todisplay = "error.html";
+}
+
 $smarty->display('extends:tpl/' . $todisplay);
-
-//$smarty->display('extends:tpl/' . $todisplay);
 
 ?>
