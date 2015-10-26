@@ -5,7 +5,8 @@
 $(document).ready(function () { // This event fires when the document is loaded
 		/*var data='[ { "id": 1, "title": "dalROP: Identifying ROP Gadgets in Dalek Firmware", "author": "Doctor Who" }, { "id": 2, "title": "Time Travel using the Tardis: Theory vs. Practice", "author": "Sarah Jane Smith" } ]';
 		var paperList=JSON.parse(data);*/
-		$.get('cgi-bin/papers.cgi')
+		//$.get('cgi-bin/papers.cgi')
+		$.get('cgi-bin/prova.cgi')
     	.done(function(data) {
     	alert("FINIO-> "+data);
     	var paperList=JSON.parse(data);
