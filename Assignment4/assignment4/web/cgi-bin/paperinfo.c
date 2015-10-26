@@ -1,6 +1,7 @@
 #include "../../paper/paperserver.h"
 #include <stdio.h>
 #include "../../ccgi/ccgi.h"
+#include "../../paper/config.h"
 
 char buffer[MAXLEN];
 
@@ -24,7 +25,7 @@ void main(int argc, char const *argv[]) {
         if(scanf(input, "id=%d", &id) != 1) {
             printf("<p>Error, invalid input</p>\n");
         } else {
-            cl = clnt_create(argv[1], ARTICLE_PROG, ARTICLE_VER, "tcp");
+            cl = clnt_create(PAPER_ADDRESS, ARTICLE_PROG, ARTICLE_VER, "tcp");
             if (cl == NULL) {
                 printf("Error requesting file list!");
                 return 1;

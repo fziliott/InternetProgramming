@@ -16,7 +16,7 @@ $(document).ready(function () { // This event fires when the document is loaded
 			var $li = $("<li class='paper'/>");
 			var $id = $("<span class='id'/>");
 			var $author = $("<span class='author'/>");
-			var $title = $("<a class='title' href=paperview.cgi?id="+paper.id+"/>");
+			var $title = $("<a class='title' href=cgi-bin/paperview.cgi?id="+paper.id+"/>");
 			$id.text("["+paper.id+"]");
 			$author.text(paper.author);
 			$title.text(paper.title);

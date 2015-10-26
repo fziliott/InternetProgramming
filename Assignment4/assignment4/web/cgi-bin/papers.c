@@ -6,7 +6,7 @@
 char buffer[MAXLEN];
 
 char* stringify(struct article_info* ai){
-    sprintf(buffer, "{\"id\"\"%d\" , \"title\" : \"%s\" , \"author\" : \"%s\"}",ai->id,ai->name,ai->author);
+    sprintf(buffer, "{\"id\" : \"%d\" , \"title\" : \"%s\" , \"author\" : \"%s\"}",ai->id,ai->name,ai->author);
     return buffer;
 }
 
@@ -25,10 +25,14 @@ int main(int argc, char const *argv[]) {
     }
 
     al = listarticle_1(NULL, cl);
-    
+    int i =0;
     while(al != NULL && al->item != NULL && al->item->id != -1) {
+        if(i!=0){
+            strcat(list, ",");
+            i++;
+        }
         strcat(list, stringify(al->item));
-        strcat(list, ",");
+        
 
         //printf("%s\n",stringify(al->item) );
         //printf( "%d\t%s\t%s\n", al->item->id, al->item->author, al->item->name);

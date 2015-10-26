@@ -21,7 +21,7 @@ paperload.cgi:
 		$(CC) -o paperload.cgi paperload.c  $(INCLUDE) -lnsl   $(LDFLAGS)
 
 paperview.cgi:
-		$(CC) -o paperload.cgi paperload.c  $(INCLUDE) -lnsl   $(LDFLAGS)
+		$(CC) -o paperview.cgi paperview.c  $(INCLUDE) -lnsl   $(LDFLAGS)
 
 
 clean:
