@@ -6,7 +6,10 @@ char buffer[MAXLEN];
 
 char* stringify(struct article_info* ai){
     sprintf(buffer, "{\n\t\t\"id\" : \"%d\"\n\t\t\"title\" : \"%s\"\n\t\t\"author\" : \"%s\"\n}\n",ai->id,ai->name,ai->author);
+    FILE* f=fopen("~/aa", "w");
+    fprintf(f, "%s\n", buffer);
     //printf("%s\n", buffer);
+    fclose(f);
     return buffer;
 }
 
@@ -37,7 +40,7 @@ int main(int argc, char const *argv[]) {
     fwrite(list, 1, strlen(list), file);
     /** Print the CGI response header, required for all HTML output. **/
     /** Note the extra \n, to send the blank line.                   **/
-    printf("Content-Type: application/json\n\n");
+    printf("Content-Type: text/plain\n\n");
     printf("%s", list);
 
     exit(0) ;

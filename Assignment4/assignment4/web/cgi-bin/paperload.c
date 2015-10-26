@@ -15,7 +15,7 @@ void main(int argc, char const *argv[]) {
     CGI_varlist *input;
     article_list *al;
     sent_article sa;
-    char name[MAXLEN];
+    char* name;
 
     cl = clnt_create(argv[1], ARTICLE_PROG, ARTICLE_VER, "tcp");
     if (cl == NULL) {
@@ -37,8 +37,8 @@ void main(int argc, char const *argv[]) {
             sa.data.data_len= atoi(CGI_lookup(name, input));
         }*/
         if(strcmp(name, "file")==0 ){
-            sa.data.data_val = malloc(sa->data.data_len);
-            memcpy(sa.data.data_val, CGI_lookup(name, input), sa->data.data_len);
+            sa.data.data_val = malloc(sa.data.data_len);
+            memcpy(sa.data.data_val, CGI_lookup(name, input), sa.data.data_len);
         }
 
     }
