@@ -1,15 +1,18 @@
 <?php
 // Initialize Smarty.
-$topdir=realpath(".");
-include('smarty/Smarty.class.php');
+ini_set('display_errors', true);
+
+error_reporting(E_ALL);
+$topdir = realpath(".");
+include 'smarty/Smarty.class.php';
 $smarty = new Smarty;
-$smarty->setTemplateDir($topdir.'/smarty/templates');
-$smarty->setCompileDir($topdir.'/smarty/templates_c');
-$smarty->setCacheDir($topdir.'/smarty/cache');
-$smarty->setConfigDir($topdir.'/smarty/configs');
+$smarty->setTemplateDir($topdir . '/smarty/templates');
+$smarty->setCompileDir($topdir . '/smarty/templates_c');
+$smarty->setCacheDir($topdir . '/smarty/cache');
+$smarty->setConfigDir($topdir . '/smarty/configs');
 
 // Load config and assign it to Smarty variables.
-include('config.php');
+include 'config.php';
 $smarty->assign('phpbase', $WEB_BASEPHP);
 $smarty->assign('cgibase', $WEB_BASECGI);
 $smarty->assign('hotelgwaddress', $HOTELGW_ADDRESS);

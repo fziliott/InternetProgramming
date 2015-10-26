@@ -1,8 +1,5 @@
 <?php
 // Initialize Smarty.
-ini_set('display_errors', true);
-
-error_reporting(E_ALL);
 
 $topdir = realpath(".");
 include 'smarty/Smarty.class.php';
@@ -21,7 +18,8 @@ $smarty->assign('hotelgwport', $HOTELGW_PORT);
 $smarty->assign('paperaddress', $PAPER_ADDRESS);
 $smarty->assign('paperport', $PAPER_PORT);
 
-$err = 'No error';
+$err = "No error";
+$todisplay = "hotellist.html";
 
 if ($socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) {
 	if (socket_connect($socket, $HOTELGW_ADDRESS, $HOTELGW_PORT)) {
@@ -36,11 +34,15 @@ if ($socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) {
 
 		socket_close($socket);
 	} else {
-		$err = $err . "Cannot connect with addr $HOTELGW_ADDRESS:$HOTELGW_PORT!\n";
+		$err = "Cannot connect with addr $HOTELGW_ADDRESS:$HOTELGW_PORT!\n";
 	}
 } else {
-	$err = $err . "Cannot create socket!\n";
+	$err = "Cannot contact remote server!\n";
 }
 
-$smarty->display('extends:tpl/hotellist.html');
+if ($err != "No error") {
+	$todisplay = "error.html";
+	$smarty->assign('error', $err);
+}
+$smarty->display('extends:tpl/' . $todisplay);
 ?>

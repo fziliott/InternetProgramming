@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS =  -g
 LDFLAGS = 
-SOURCES_C = paperserver.c paperclient.c papers.c paperinfo.c paperload.c paperview.c
-OBJECTS = paperclient.o paperserver_clnt.o paperserver_xdr.o paperserver.o paperserver_svc.o add_clnt.c  papers.o paperinfo.o paperview.o paperload.o
+SOURCES_C = paperserver.c paperclient.c 
+OBJECTS = paperclient.o paperserver_clnt.o paperserver_xdr.o paperserver.o paperserver_svc.o add_clnt.c 
 SOURCES_JAVA = ./client/HotelClient.java ./server/HotelServer.java
 EXEC = paperserver paperclient
 
@@ -40,4 +40,4 @@ paperserver.o: paperserver.c paperserver.h
 clean:
 		rm -rf $(OBJECTS) $(EXEC:.$(EXT)=.o) *.out paperserver.h paperserver_clnt.c  paperserver_xdr.c paperserver_svc.c
 
-.PHONY:  paperserver paperclient papers paperinfo paperload paperview clean all compile
+.PHONY:  paperserver paperclient clean all compile
