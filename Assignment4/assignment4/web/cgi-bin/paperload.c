@@ -50,6 +50,9 @@ void main(int argc, char const *argv[]) {
 
     
    // int id=sendarticle_1(&sa, cl);
-printf("id %d\n", 0);
+    if (id==-1)
+        printf("Location: papererror.php?reason=%d\n\n",id);
+    else 
+        printf("Location: paperinfo.php?id=%d\n\n",id);
     exit(0) ;
 }
