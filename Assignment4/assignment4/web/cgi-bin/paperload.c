@@ -26,7 +26,6 @@ char error[MAXLEN];
     int i;
     char *content;
 
-    printf("Content-Type: text/plain\r\n\r\n");
 
     /* output all values of all variables and cookies */
     /*
@@ -45,7 +44,9 @@ char error[MAXLEN];
 
     value = CGI_lookup_all(varlist, "author");
     if (value == 0 || value[0] == 0) {
-        fputs("No file was uploadedd\r\n", stdout);
+           strcpy(error, "No author was found");
+    	printf("Location: ../papererror.php?reason=%s\n\n", error);
+    	return 0;
     } else {
     	sa.author=malloc(strlen(value[0]));
         //printf("author is  \"%s\"\r\n",value[0]);
@@ -54,22 +55,22 @@ char error[MAXLEN];
     }
     value = CGI_lookup_all(varlist, "id");
     if (value == 0 || value[0] == 0) {
-        printf("No valid id\n");
+        strcpy(error, "No name for the file");
+    	printf("Location: ../papererror.php?reason=%s\n\n", error);
+    	return 0;
     } else {
     	sa.name=malloc(strlen(value[0]));
 
         strcpy(sa.name, value[0]);
-int i;
-        //printf("%s\n", id);
     }
 
 
     value = CGI_lookup_all(varlist, "file");
     if (value == 0 || value[1] == 0) {
-        fputs("No file was uploadedd\r\n", stdout);
-    } else {
-        printf("Your file \"%s\" was uploaded to my file \"%s\"\r\n", value[1], value[0]);
-    }
+    	strcpy(error, "No file was found");
+    	printf("Location: ../papererror.php?reason=%s\n\n", error);
+    	return 0;
+    } 
 
     FILE *file = fopen(value[1], "rb");
     fseek(file, 0L, SEEK_END);
@@ -131,7 +132,9 @@ int i;
 
     cl = clnt_create(PAPER_ADDRESS, ARTICLE_PROG, ARTICLE_VER, "tcp");
     if (cl == NULL) {
-        printf("Error requesting file list!");
+    	strcpy(error, "Can't connect to server");
+        printf("Location: ../papererror.php?reason=%d\n\n", error);
+
         return 1;
     }
     //input = CGI_get_post(NULL, NULL);
@@ -159,8 +162,8 @@ int i;
 
     id = sendarticle_1(&sa, cl);
     if (id == -1)
-        printf("Location: papererror.php?reason=%d\n\n", id);
+        printf("Location: ../papererror.php?reason=%d\n\n", id);
     else
-        printf("Location: paperinfo.php?id=%d\n\n", id);
+        printf("Location: ../paperinfo.php?id=%d\n\n", id);
     return 0;
 }
