@@ -9,8 +9,13 @@ public class HotelClient {
         try {
             int c;
             String arg;
-
-            HotelInterface hotelServer = (HotelInterface) Naming.lookup("rmi://" + args[0] + "/Hotel");
+            String host;
+            if(args[0].equals("-h")){
+                host = "localhost";
+            }else{
+                host=args[0];
+            }
+            HotelInterface hotelServer = (HotelInterface) Naming.lookup("rmi://" + host + "/Hotel");
             
             Getopt g = new Getopt("HotelClient", args, "hlb::g");
 

@@ -30,48 +30,68 @@ void main(int argc, char const *argv[]) {
     char fileExt[MAXLEN];
     char mime[MAXLEN];
 
+    CGI_varlist *varlist;
+    const char *name;
+    CGI_value  *value;
+    char* token;
+    int i=1;
+    int j;
+
     input = getenv("QUERY_STRING");
-            printf("Content-Type: text/plain\n\n vhgfdhgddgh");
-
     if(input != NULL) {
+    	if ((varlist = CGI_get_all(0)) == 0){
+        	i=0;
+    	}
+        for (name = CGI_first_name(varlist); name != 0;
+        name = CGI_next_name(varlist))
+    {
+        value = CGI_lookup_all(varlist, 0);
+        /* CGI_lookup_all(varlist, name) could also be used */
 
-        if(sscanf(input, "id=%d", &id) != 1) 
-           printf("<p>Error, invalid input</p>\n");
-        //} else {
+      /* for (j = 0; value[j] != 0; j++) {
+            printf("%s [%d] = %s\r\n", name, j, value[j]);
+        }*/
+        id=value[0];
+        CGI_free_varlist(varlist);
+    }
+    
+    	//name = CGI_first_name(varlist);
+
             cl = clnt_create(PAPER_ADDRESS, ARTICLE_PROG, ARTICLE_VER, "tcp");
             if (cl == NULL) {
             printf("Content-Type: text/plain\n\n");
 
                 printf("Error requesting file list!");
-                return 1;
+                return;
             }
-            ar.articleID = 0;
+            ar.articleID = id;
             ai = retrievearticleinfo_1(&ar, cl);
             ra = retrievearticle_1(&ar, cl);
             
-
-            char *token;
             if((token = strtok(ai->name, ".\n"))  == NULL) {
-                return NULL;
+            	printf("Content-Type: text/plain\n\n");
+                printf("%s",token);
+                return;
             }
 
-            while(token != NULL) {
-                token = strtok(NULL, ".\n");
-                strcpy(fileExt, token);
+            if((token = strtok(NULL, ".\n"))  == NULL) {
+            	printf("Content-Type: text/plain\n\n");
+                printf("%s",token);
+                return;
             }
-            int i = 0;
+            
             for(i = 0; i < NUM_TYPES; i = i + 2) {
-                if(strcmp(mimeTypes[i], fileExt) == 0) {
+                if(strcmp(mimeTypes[i], token) == 0) {
                     strcpy(mime, mimeTypes[i + 1]);
+                    break;
                 }
             }
             if(i > NUM_TYPES) {
                 strcpy(mime, "application/octect-stream");
             }
             printf("Content-Type: %s\n\n", mime);
-           //printf("Content-Type: text/plain\n\n");
-//printf("%s\n",input );
-          fwrite(ra->data.data_val, sizeof(char), ra->data.data_len, stdout);
+
+         fwrite(ra->data.data_val, sizeof(char), ra->data.data_len, stdout);
       }
   
     

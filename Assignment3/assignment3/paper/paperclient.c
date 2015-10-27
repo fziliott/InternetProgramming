@@ -25,10 +25,7 @@ int main(int argc, char **argv) {
     int c;
     int num_read = 0;
     FILE* file;
-
-    if(argc < 2) {
-        return -1;
-    }
+ 
     cl = clnt_create(argv[1], ARTICLE_PROG, ARTICLE_VER, "tcp");
     if (cl == NULL) {
         perror("Error creating RPC client!");

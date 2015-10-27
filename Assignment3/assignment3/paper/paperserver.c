@@ -115,7 +115,7 @@ article_list *listarticle_1_svc(void *v, struct svc_req *cl) {
         listItem = listItem->next;
     }
 
-    if(articleList.item == NULL) {
+    if(papers == NULL) {
         articleList.item = malloc(sizeof(article_info));
         articleList.item->id = -1;
     }
@@ -127,10 +127,8 @@ article_info *retrievearticleinfo_1_svc(article_request *ar, struct svc_req *cl)
     static article_info ai;
     int res = getArticleInfo(ar->articleID, &ai);
     if(res == 1) {
-        printf("trovato\n");
         ai.id = ar->articleID;
     } else {
-        printf("non trov\n");
         ai.id = -1;
     }
     return &ai;
@@ -153,6 +151,9 @@ int *removearticle_1_svc(article_request *ar, struct svc_req *cl) {
     } else if( papers->id == ar->articleID) {
         free(papers->data);
         item = papers;
+        if(papers->next == NULL){
+            papers=NULL;
+        }else
         papers = papers->next;
         free(item);
         res = 0;
@@ -225,10 +226,10 @@ int *sendarticle_1_svc(sent_article *sa, struct svc_req *clrts) {
 
         if(papers==NULL){
             papers=item;
+            papers->next=NULL;
         }else{
             prev->next=item;
         }
-    //printItems(papers);
 res=artID;
     return &res;
 }
@@ -248,7 +249,6 @@ retrieved_article *retrievearticle_1_svc(article_request *request, struct svc_re
     memcpy(ra.data.data_val, item->data, item->dataSize);
 
     ra.data.data_len = item->dataSize;
-    printf("%d\n", ra.size );
     return &ra;
 }
 

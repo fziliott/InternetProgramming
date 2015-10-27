@@ -29,9 +29,9 @@ int main(int argc, char const *argv[]) {
     while(al != NULL && al->item != NULL && al->item->id != -1) {
         if(i!=0){
             strcat(list, ",");
-            i++;
         }
         strcat(list, stringify(al->item));
+        i++;
         
 
         //printf("%s\n",stringify(al->item) );
