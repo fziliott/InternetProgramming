@@ -1,9 +1,5 @@
 <?php
 // Initialize Smarty.
-ini_set('display_errors', true);
-
-error_reporting(E_ALL);
-
 $topdir = realpath(".");
 include 'smarty/Smarty.class.php';
 $smarty = new Smarty;

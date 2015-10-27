@@ -1,17 +1,16 @@
 CC = gcc
 CFLAGS =  -g
 LDFLAGS = 
-SOURCES_C = paperserver.c paperclient.c 
+SOURCES_C = paperserver.c paperclient.c
 OBJECTS = paperclient.o paperserver_clnt.o paperserver_xdr.o paperserver.o paperserver_svc.o add_clnt.c 
 SOURCES_JAVA = ./client/HotelClient.java ./server/HotelServer.java
 EXEC = paperserver paperclient
 
-build: $(EXEC)
+build: $(EXEC) 
 
 jrun: java run
 
-all: clean build
-
+all: clean build 
 
 paperclient: paperclient.o paperserver_clnt.o paperserver_xdr.o 
 	$(CC) -o paperclient paperclient.o paperserver_clnt.o paperserver_xdr.o -lnsl  

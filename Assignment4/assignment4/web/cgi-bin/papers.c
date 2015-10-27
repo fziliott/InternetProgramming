@@ -33,9 +33,6 @@ int main(int argc, char const *argv[]) {
         strcat(list, stringify(al->item));
         i++;
         
-
-        //printf("%s\n",stringify(al->item) );
-        //printf( "%d\t%s\t%s\n", al->item->id, al->item->author, al->item->name);
         al = al->next;
     }
     strcat(list, "]\n");

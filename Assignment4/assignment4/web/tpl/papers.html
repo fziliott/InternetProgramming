@@ -7,11 +7,9 @@ $(document).ready(function () { // This event fires when the document is loaded
 		var paperList=JSON.parse(data);*/
 		$.get('cgi-bin/papers.cgi')
     	.done(function(data) {
-    	alert("FINIO-> "+data);
     	var paperList=JSON.parse(data);
 		var $ul = $( "<ul class='paperlist'/>" );
 		for (i=0;i<paperList.length;i++){
-			alert(paperList.length);
 			var paper=paperList[i];
 			var $li = $("<li class='paper'/>");
 			var $id = $("<span class='id'/>");

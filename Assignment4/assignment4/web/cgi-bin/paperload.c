@@ -3,6 +3,7 @@
 #include "../../ccgi/ccgi.h"
 #include "../../paper/config.h"
 
+
 char buffer[MAXLEN];
 
 char *stringify(article_info *ai) {
@@ -11,14 +12,14 @@ char *stringify(article_info *ai) {
     return buffer;
 }
 
-void main(int argc, char const *argv[]) {
+int main(int argc, char const *argv[]) {
     CLIENT *cl;
 
     article_list *al;
     sent_article sa;
-    int id=-1;
+    int* id;
     char author[MAXLEN];
-char error[MAXLEN];
+	char error[MAXLEN];
 
     CGI_varlist *varlist = NULL;
     const char *name;
@@ -27,34 +28,21 @@ char error[MAXLEN];
     char *content;
 
 
-    /* output all values of all variables and cookies */
-    /*
-        for (name = CGI_first_name(varlist); name != 0;
-            name = CGI_next_name(varlist))
-        {
-            value = CGI_lookup_all(varlist, 0);
-
-
-            for (i = 0; value[i] != 0; i++) {
-                printf("%s [%d] = %s\r\n", name, i, value[i]);
-            }
-        }*/
 
     varlist = CGI_get_post(NULL, "/tmp/cgi-upload-XXXXXX");
 
     value = CGI_lookup_all(varlist, "author");
-    if (value == 0 || value[0] == 0) {
+    if (value == 0 || value[0] == 0|| strcmp("",value[0])==0) {
            strcpy(error, "No author was found");
     	printf("Location: ../papererror.php?reason=%s\n\n", error);
     	return 0;
     } else {
     	sa.author=malloc(strlen(value[0]));
-        //printf("author is  \"%s\"\r\n",value[0]);
         strcpy(sa.author, value[0]);
         int i;
     }
     value = CGI_lookup_all(varlist, "id");
-    if (value == 0 || value[0] == 0) {
+    if (value == 0 || value[0] == 0|| strcmp("",value[0])==0) {
         strcpy(error, "No name for the file");
     	printf("Location: ../papererror.php?reason=%s\n\n", error);
     	return 0;
@@ -62,108 +50,47 @@ char error[MAXLEN];
     	sa.name=malloc(strlen(value[0]));
 
         strcpy(sa.name, value[0]);
+
     }
 
 
     value = CGI_lookup_all(varlist, "file");
-    if (value == 0 || value[1] == 0) {
+     
+    if (value == 0 || value[0] == 0) {
     	strcpy(error, "No file was found");
     	printf("Location: ../papererror.php?reason=%s\n\n", error);
     	return 0;
     } 
 
-    FILE *file = fopen(value[1], "rb");
-    fseek(file, 0L, SEEK_END);
-    int size = ftell(file);
-    fseek(file, 0L, SEEK_SET);
+
+    FILE *file = fopen(value[0], "rb");
+
+int size=-1;
+
+    fseek(file, 0, SEEK_END);
+    size=ftell(file);
+    fseek(file, 0, SEEK_SET);
+
 
     sa.data.data_len = size;
-    sa.data.data_val = malloc(sizeof(char) * size);
-    memcpy(sa.data.data_val, file,  size);
+    sa.size=size;
+    sa.data.data_val = malloc(size);
 
-
-    //fwrite(f,1,800,stdout);
-
-
-    /*if ((varlist = CGI_get_all(0)) != 0){
-     for (name = CGI_first_name(varlist); name != 0;
-            name = CGI_next_name(varlist))
-        {
-            value = CGI_lookup_all(varlist, 0);
-
-
-            for (i = 0; value[i] != 0; i++) {
-                printf("%s [%d] = %s\r\n", name, i, value[i]);
-            }
-        }
-    }
-    else{
-    	printf("peto");
-    }*/
-    /*varlist = CGI_get_all("tmp/cgi-upload-XXXXXX");
-    value = CGI_lookup_all(varlist, "file");
-    if (value == 0 || value[1] == 0) {
-       fputs("No file was uploaded\r\n", stdout);
-    }
-    else {
-       printf("Your file \"%s\" was uploaded to my file \"%s\"\r\n",
-           value[1], value[0]);
-    }*/
-
-
-    //     char* input = getenv("CONTENT_TYPE");
-    //     printf("%s\n",input);
-    //     int content_length = atoi(getenv("CONTENT_LENGTH"));
-    //     printf("content-length: %d\n",content_length);
-
-    //     content = (char *) malloc(sizeof(char) * content_length);
-
-    // fread(content, content_length, 1, stdin);
-    //fwrite(content,sizeof(char),content_length,stdout);
-    /*varlist= CGI_get_post(NULL, "cgi-upload-XXXXXX");
-        value = CGI_lookup_all(varlist, "file");
-        if (value == 0 || value[1] == 0) {
-            printf("No file was uploaded -> %d %d\r\n", value);
-        }
-        else {
-            printf("Your file \"%s\" was uploaded to my file \"%s\"\r\n",
-                value[1], value[0]);
-        }*/
-
+fread(sa.data.data_val, 1, size, file);
+ 
     cl = clnt_create(PAPER_ADDRESS, ARTICLE_PROG, ARTICLE_VER, "tcp");
     if (cl == NULL) {
     	strcpy(error, "Can't connect to server");
-        printf("Location: ../papererror.php?reason=%d\n\n", error);
+        printf("Location: ../papererror.php?reason=%s\n\n", error);
 
         return 1;
     }
-    //input = CGI_get_post(NULL, NULL);
-    //printf(" input %s\n",input );
-    /*
-        while(name=CGI_next_name(input) != NULL){
-            if(strcmp(name, "author")==0 ){
-            strcpy(sa.author, CGI_lookup(name, input));
-            }
-            if(strcmp(name, "id")==0 ){
-            strcpy(sa.name, CGI_lookup(name, input));
-
-            }*/
-    //          we need the size of the file
-    /*if(strcmp(name, "size")==0 ){
-        sa.data.data_len= atoi(CGI_lookup(name, input));
-    }*/
-    // sa.data.data_len = 6;
-    /*if(strcmp(name, "file")==0 ){
-        sa.data.data_val = malloc(sa.data.data_len);
-        memcpy(sa.data.data_val, "hello", sa.data.data_len);
-
-        //memcpy(sa.data.data_val, CGI_lookup(name, input), sa.data.data_len);
-    }*/
-
+   
     id = sendarticle_1(&sa, cl);
-    if (id == -1)
-        printf("Location: ../papererror.php?reason=%d\n\n", id);
+    int newId=*id;
+    if (newId == -1)
+        printf("Location: ../papererror.php?reason=%s\n\n", "Can't store the file");
     else
-        printf("Location: ../paperinfo.php?id=%d\n\n", id);
+        printf("Location: ../paperinfo.php?id=%d&new=%s\n\n", newId, "Upload successful");
     return 0;
 }

@@ -1,4 +1,4 @@
-.PHONY: all config web hotel paper
+.PHONY: all config web hotel paper clean
 
 all: config web/smarty ccgi/libccgi.a paper hotel web
 

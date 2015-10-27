@@ -108,6 +108,7 @@ public class HotelGateway {
             while(true) {
                 Socket clientSocket = hotelSocket.accept();
                 (new Thread(new ClientHandler(clientSocket))).start();
+
             }
         }
     }
